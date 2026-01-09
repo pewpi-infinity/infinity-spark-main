@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages
+name: Deploy Pages
 
 on:
   push:
@@ -8,10 +8,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -24,13 +20,10 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install
-        run: npm ci || npm install
+      - name: Build page
+        run: node scripts/build-pages.js
 
-      - name: Build
-        run: npm run build
-
-      - name: Upload artifact
+      - name: Upload Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -38,8 +31,6 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
     steps:
       - uses: actions/deploy-pages@v4
       
