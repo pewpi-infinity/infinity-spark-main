@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Eye, ArrowLeft, MagnifyingGlassPlus, Link as LinkIcon, CheckCircle } from '@phosphor-icons/react'
+import { formatAnalyticNumber } from '@/lib/analytics'
 import type { BuildPage } from '@/types'
 
 interface PageIndexProps {
@@ -93,6 +94,21 @@ export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageI
                 <p className="text-sm text-muted-foreground line-clamp-3">
                   {page.content}
                 </p>
+                
+                {page.analytics && page.analytics.views > 0 && (
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground border-t border-border/50 pt-3">
+                    <div className="flex items-center gap-1">
+                      <Eye size={14} />
+                      <span>{formatAnalyticNumber(page.analytics.views)} views</span>
+                    </div>
+                    {page.analytics.uniqueVisitors > 0 && (
+                      <div>
+                        {formatAnalyticNumber(page.analytics.uniqueVisitors)} visitors
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <div className="text-xs text-muted-foreground font-mono">
                   {new Date(page.timestamp).toLocaleDateString('en-US', {
                     month: 'short',

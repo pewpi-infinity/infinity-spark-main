@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,9 +16,12 @@ import {
   Rocket,
   Link as LinkIcon,
   CheckCircle,
+  ShareNetwork,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { publishPage } from '@/lib/publisher'
+import { trackPageView, trackPageShare, initializePageAnalytics } from '@/lib/analytics'
+import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
 import type { BuildPage } from '@/types'
 
 interface BuiltPageViewProps {
@@ -29,6 +32,18 @@ interface BuiltPageViewProps {
 
 export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps) {
   const [isPublishing, setIsPublishing] = useState(false)
+
+  useEffect(() => {
+    if (!page.analytics) {
+      const updatedPage = {
+        ...page,
+        analytics: initializePageAnalytics()
+      }
+      onPageUpdate(trackPageView(updatedPage))
+    } else {
+      onPageUpdate(trackPageView(page))
+    }
+  }, [])
 
   const featureIcons = {
     charts: <ChartBar size={20} />,
@@ -90,6 +105,39 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
     }
   }
 
+  const handleShare = async () => {
+    const shareText = page.url 
+      ? `${page.title}\n\n${page.url}`
+      : `${page.title}\n\nPage ID: ${page.id}`
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: page.title,
+          text: shareText,
+          url: page.url
+        })
+        onPageUpdate(trackPageShare(page))
+        toast.success('Page shared!')
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          handleCopyShare()
+        }
+      }
+    } else {
+      handleCopyShare()
+    }
+  }
+
+  const handleCopyShare = () => {
+    const shareText = page.url 
+      ? `${page.title}\n\n${page.url}`
+      : `${page.title}\n\nPage ID: ${page.id}`
+    navigator.clipboard.writeText(shareText)
+    onPageUpdate(trackPageShare(page))
+    toast.success('Page info copied to clipboard')
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-8">
@@ -116,23 +164,32 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     ))}
                   </div>
                 </div>
-                <Badge 
-                  className={
-                    page.published 
-                      ? "bg-accent/20 text-accent border-accent/30" 
-                      : "bg-muted/20 text-muted-foreground border-muted"
-                  }
-                  variant="outline"
-                >
-                  {page.published ? (
-                    <>
-                      <CheckCircle className="mr-1" size={16} />
-                      Published
-                    </>
-                  ) : (
-                    <>⚠️ Draft</>
-                  )}
-                </Badge>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <ShareNetwork size={20} />
+                  </Button>
+                  <Badge 
+                    className={
+                      page.published 
+                        ? "bg-accent/20 text-accent border-accent/30" 
+                        : "bg-muted/20 text-muted-foreground border-muted"
+                    }
+                    variant="outline"
+                  >
+                    {page.published ? (
+                      <>
+                        <CheckCircle className="mr-1" size={16} />
+                        Published
+                      </>
+                    ) : (
+                      <>⚠️ Draft</>
+                    )}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -209,6 +266,10 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
               )}
             </CardContent>
           </Card>
+
+          {page.analytics && (
+            <AnalyticsDashboard analytics={page.analytics} type="page" />
+          )}
 
           {!page.published && (
             <Card className="bg-accent/10 border-accent/30">

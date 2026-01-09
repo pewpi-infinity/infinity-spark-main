@@ -1,3 +1,11 @@
+export interface TokenAnalytics {
+  views: number
+  lastViewed?: number
+  searches: number
+  promotions: number
+  shares: number
+}
+
 export interface Token {
   id: string
   query: string
@@ -5,6 +13,7 @@ export interface Token {
   content: string
   promoted: boolean
   pageId?: string
+  analytics?: TokenAnalytics
 }
 
 export interface PageFeatures {
@@ -16,6 +25,14 @@ export interface PageFeatures {
   widgets: boolean
   navigation: boolean
   monetization: boolean
+}
+
+export interface PageAnalytics {
+  views: number
+  lastViewed?: number
+  edits: number
+  shares: number
+  uniqueVisitors: number
 }
 
 export interface BuildPage {
@@ -30,6 +47,7 @@ export interface BuildPage {
   url?: string
   slug?: string
   publishedAt?: number
+  analytics?: PageAnalytics
 }
 
 export interface SearchResult {

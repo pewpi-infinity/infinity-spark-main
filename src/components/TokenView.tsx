@@ -1,10 +1,13 @@
+import { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, Sparkle, CheckCircle, Link as LinkIcon, Rocket } from '@phosphor-icons/react'
+import { ArrowLeft, Sparkle, CheckCircle, Link as LinkIcon, Rocket, ShareNetwork } from '@phosphor-icons/react'
 import type { Token, BuildPage } from '@/types'
 import { formatTimestamp } from '@/lib/search'
+import { trackTokenView, trackTokenShare } from '@/lib/analytics'
+import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
 import { toast } from 'sonner'
 
 interface TokenViewProps {
@@ -12,12 +15,20 @@ interface TokenViewProps {
   pages: BuildPage[]
   onBack: () => void
   onViewPage?: (page: BuildPage) => void
+  onTokenUpdate?: (token: Token) => void
 }
 
-export function TokenView({ token, pages, onBack, onViewPage }: TokenViewProps) {
+export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate }: TokenViewProps) {
   const associatedPage = token.pageId 
     ? pages.find(p => p.id === token.pageId) 
     : undefined
+
+  useEffect(() => {
+    if (onTokenUpdate) {
+      const updatedToken = trackTokenView(token)
+      onTokenUpdate(updatedToken)
+    }
+  }, [])
 
   const handleViewLive = () => {
     if (associatedPage?.url) {
@@ -30,6 +41,40 @@ export function TokenView({ token, pages, onBack, onViewPage }: TokenViewProps) 
       navigator.clipboard.writeText(associatedPage.url)
       toast.success('URL copied to clipboard')
     }
+  }
+
+  const handleShare = async () => {
+    const shareText = `${token.query}\n\nToken: ${token.id}`
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: token.query,
+          text: shareText
+        })
+        if (onTokenUpdate) {
+          const updatedToken = trackTokenShare(token)
+          onTokenUpdate(updatedToken)
+        }
+        toast.success('Token shared!')
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          handleCopyShare()
+        }
+      }
+    } else {
+      handleCopyShare()
+    }
+  }
+
+  const handleCopyShare = () => {
+    const shareText = `${token.query}\n\nToken: ${token.id}`
+    navigator.clipboard.writeText(shareText)
+    if (onTokenUpdate) {
+      const updatedToken = trackTokenShare(token)
+      onTokenUpdate(updatedToken)
+    }
+    toast.success('Token info copied to clipboard')
   }
 
   const handleViewPageDetails = () => {
@@ -72,7 +117,7 @@ export function TokenView({ token, pages, onBack, onViewPage }: TokenViewProps) 
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
               <div className="font-mono">{token.id}</div>
               <Separator orientation="vertical" className="h-4" />
               <div>{formatTimestamp(token.timestamp)}</div>
@@ -80,6 +125,20 @@ export function TokenView({ token, pages, onBack, onViewPage }: TokenViewProps) 
           </CardHeader>
 
           <CardContent className="space-y-6">
+            <div className="flex justify-end">
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                size="sm"
+              >
+                <ShareNetwork className="mr-2" size={18} />
+                Share Token
+              </Button>
+            </div>
+
+            {token.analytics && (
+              <AnalyticsDashboard analytics={token.analytics} type="token" />
+            )}
             <div>
               <h3 className="text-lg font-semibold mb-3">Content</h3>
               <div className="prose prose-invert max-w-none">

@@ -9,6 +9,7 @@ import { LocalSearch } from '@/components/LocalSearch'
 import { TokenView } from '@/components/TokenView'
 import { Toaster, toast } from 'sonner'
 import { processSearch, createToken } from '@/lib/search'
+import { initializeTokenAnalytics, trackTokenPromotion } from '@/lib/analytics'
 import type { Token, SearchResult, PageFeatures, BuildPage } from '@/types'
 
 type AppView = 'search' | 'result' | 'building' | 'page' | 'index' | 'localSearch' | 'tokenView'
@@ -31,6 +32,8 @@ function App() {
     try {
       const result = await processSearch(query)
       const token = createToken(query, result.content)
+      
+      token.analytics = initializeTokenAnalytics()
 
       setTokens((current) => [token, ...(current || [])])
 
@@ -67,9 +70,11 @@ function App() {
       published: false,
     }
 
+    const updatedToken = trackTokenPromotion(currentToken)
+
     setTokens((current) =>
       (current || []).map((t) =>
-        t.id === currentToken.id ? { ...t, promoted: true, pageId: page.id } : t
+        t.id === currentToken.id ? { ...updatedToken, promoted: true, pageId: page.id } : t
       )
     )
 
@@ -112,6 +117,13 @@ function App() {
   const handleViewToken = (token: Token) => {
     setCurrentToken(token)
     setView('tokenView')
+  }
+
+  const handleTokenUpdate = (updatedToken: Token) => {
+    setTokens((current) =>
+      (current || []).map((t) => (t.id === updatedToken.id ? updatedToken : t))
+    )
+    setCurrentToken(updatedToken)
   }
 
   const pageCount = pages?.length || 0
@@ -173,6 +185,7 @@ function App() {
           pages={pages || []}
           onBack={() => setView('localSearch')}
           onViewPage={handleViewPage}
+          onTokenUpdate={handleTokenUpdate}
         />
       )}
 

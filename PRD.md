@@ -91,11 +91,32 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Success criteria**: Users can quickly find previously created tokens and pages, search highlights matching terms, filters work correctly
 
 ### Token Viewing
-- **Functionality**: Dedicated view for individual token inspection showing query, content, metadata, and promotion status
-- **Purpose**: Provides detailed access to token information and history
+- **Functionality**: Dedicated view for individual token inspection showing query, content, metadata, promotion status, and analytics
+- **Purpose**: Provides detailed access to token information, history, and engagement metrics
 - **Trigger**: User selects a token from archive search results
-- **Progression**: Token selected → dedicated view opens → displays full token details → user can navigate back to search
-- **Success criteria**: All token information is clearly displayed, promoted tokens show page link
+- **Progression**: Token selected → dedicated view opens → view count incremented → displays full token details with analytics dashboard → user can share token → user can navigate back to search
+- **Success criteria**: All token information is clearly displayed, promoted tokens show page link, analytics update on view, share tracking works
+
+### Token Analytics Tracking
+- **Functionality**: Automatic tracking of token engagement metrics including views, shares, promotions, and searches
+- **Purpose**: Provides insight into token value and usage patterns
+- **Trigger**: Various user interactions (viewing token, sharing, promoting to page, searching)
+- **Progression**: User interaction occurs → corresponding analytics metric incremented → analytics persisted in KV → displayed in token view and search results
+- **Success criteria**: Analytics accurately track engagement, display in readable format, persist across sessions
+
+### Page Analytics Tracking
+- **Functionality**: Automatic tracking of page metrics including views, edits, shares, and unique visitors
+- **Purpose**: Shows page performance and engagement levels
+- **Trigger**: Various user interactions (viewing page, editing, sharing)
+- **Progression**: User interaction occurs → corresponding analytics metric incremented → analytics persisted in KV → displayed in page view and index
+- **Success criteria**: Analytics accurately track all interactions, display in both compact and full dashboard formats, calculate engagement scores
+
+### Analytics Dashboard
+- **Functionality**: Visual display of token and page metrics with compact and full views
+- **Purpose**: Makes engagement data accessible and understandable at a glance
+- **Trigger**: User views token or page details, or browses search results
+- **Progression**: Analytics data loaded → rendered as compact inline stats or full dashboard → shows total views, shares, promotions/edits, last viewed time, engagement score
+- **Success criteria**: Metrics are clearly formatted, numbers abbreviated for large values (K/M), engagement score calculated correctly, compact view fits inline, full dashboard is comprehensive
 
 ## Edge Case Handling
 
@@ -112,7 +133,11 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Search for Existing Page** - Show existing page in results, offer to view or rebuild
 - **Empty Archive Search** - Display message when no tokens or pages exist yet
 - **No Archive Search Results** - Show helpful message when query matches nothing, suggest adjusting filters
-- **Viewing Promoted Tokens** - Show link to associated page when viewing promoted token details
+- **Viewing Promoted Tokens** - Show link to associated page when viewing promoted token details, display promotion count in analytics
+- **First Time Analytics** - Initialize analytics objects with zeros on first creation for tokens and pages
+- **Analytics Display with Zero Values** - Show analytics dashboard even when metrics are zero to establish expectations
+- **Compact Analytics in Lists** - Display abbreviated metrics inline in search results and index views
+- **Share Tracking** - Increment share counter whether user uses native share or clipboard copy fallback
 
 ## Design Direction
 
@@ -194,8 +219,13 @@ Animations should emphasize **moments of generation and transformation** - the f
   - Files for file attachments
   - NavigationArrow for nav features
   - CurrencyDollar for monetization
-  - Eye for viewing pages
+  - Eye for viewing pages and view counts
   - ArrowRight for progression
+  - ShareNetwork for sharing functionality
+  - TrendUp for analytics/engagement scores
+  - Clock for last viewed timestamps
+  - Users for unique visitor counts
+  - PencilSimple for edit counts
   
 - **Spacing**: 
   - Search container: py-32 (dramatic vertical centering on index)

@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { Sparkle } from '@phosphor-icons/react'
+import { Sparkle, Eye } from '@phosphor-icons/react'
 import { formatTimestamp } from '@/lib/search'
+import { formatAnalyticNumber } from '@/lib/analytics'
 import type { Token } from '@/types'
 
 interface TokenDisplayProps {
@@ -36,11 +37,19 @@ export function TokenDisplay({ token, animate = false }: TokenDisplayProps) {
             {token.query}
           </p>
           
-          {token.promoted && (
-            <Badge className="mt-2 bg-accent/20 text-accent border-accent/30" variant="outline">
-              Promoted to Page
-            </Badge>
-          )}
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
+            {token.promoted && (
+              <Badge className="bg-accent/20 text-accent border-accent/30" variant="outline">
+                Promoted to Page
+              </Badge>
+            )}
+            {token.analytics && token.analytics.views > 0 && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Eye size={14} />
+                <span>{formatAnalyticNumber(token.analytics.views)} views</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Card>

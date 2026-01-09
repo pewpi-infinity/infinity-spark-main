@@ -17,6 +17,7 @@ import {
 import type { Token, BuildPage } from '@/types'
 import { searchWithRelevance, type SearchFilters, type SearchableItem } from '@/lib/localSearch'
 import { formatTimestamp } from '@/lib/search'
+import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
 
 interface LocalSearchProps {
   tokens: Token[]
@@ -242,6 +243,26 @@ function SearchResultCard({ item, query, onViewToken, onViewPage }: SearchResult
           {highlightText(item.content.substring(0, 200), query)}
           {item.content.length > 200 && '...'}
         </p>
+
+        {isToken && (item as Token).analytics && (
+          <div className="pt-2 border-t border-border/50">
+            <AnalyticsDashboard 
+              analytics={(item as Token).analytics} 
+              type="token" 
+              compact 
+            />
+          </div>
+        )}
+
+        {!isToken && (item as BuildPage).analytics && (
+          <div className="pt-2 border-t border-border/50">
+            <AnalyticsDashboard 
+              analytics={(item as BuildPage).analytics} 
+              type="page" 
+              compact 
+            />
+          </div>
+        )}
 
         {!isToken && (item as BuildPage).tags.length > 0 && (
           <div className="flex gap-2 flex-wrap">
