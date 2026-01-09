@@ -103,29 +103,26 @@ OUTPUT FORMAT (JSON ONLY):
 // ENGINE CALL (REPLACE INTERNALLY AS NEEDED)
 // --------------------------------------------------
 async function callMongooseEngine(prompt: string): Promise<string> {
-  /**
-   * 🔧 IMPLEMENTATION NOTE
-   *
-   * This function is intentionally isolated.
-   * You replace its internals ONCE and never touch the rest of the system.
-   *
-   * Examples:
-   * - local llama.cpp / ollama
-   * - mongoose.os HTTP service
-   * - internal inference engine
-   */
+  const MONGOOSE_ENDPOINT =
+    process.env.MONGOOSE_OS_URL || 'http://localhost:3333/query'
 
-  // TEMPORARY PLACEHOLDER
-  // Replace this with your real mongoose.os call
-  const response = await fetch('/mongoose/llm', {
+  const response = await fetch(MONGOOSE_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      prompt,
+      mode: 'page_generation',
+      format: 'json'
+    })
   })
 
   if (!response.ok) {
-    throw new Error('Failed to reach mongoose.os LLM engine')
+    const errText = await response.text()
+    throw new Error(`mongoose.os error: ${errText}`)
   }
 
   return await response.text()
-}
+    }
+
