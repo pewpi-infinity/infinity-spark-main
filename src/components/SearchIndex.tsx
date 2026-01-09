@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { MagnifyingGlass, MagnifyingGlassPlus, Files } from '@phosphor-icons/react'
+import { MagnifyingGlass, MagnifyingGlassPlus, Files, Gear } from '@phosphor-icons/react'
 
 interface SearchIndexProps {
   onSearch: (query: string) => void
   onViewArchives?: () => void
   onViewPages?: () => void
+  onOpenSettings?: () => void
   hasTokens?: boolean
   hasPages?: boolean
 }
 
-export function SearchIndex({ onSearch, onViewArchives, onViewPages, hasTokens, hasPages }: SearchIndexProps) {
+export function SearchIndex({ onSearch, onViewArchives, onViewPages, onOpenSettings, hasTokens, hasPages }: SearchIndexProps) {
   const [query, setQuery] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -25,6 +26,17 @@ export function SearchIndex({ onSearch, onViewArchives, onViewPages, hasTokens, 
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative">
+      {onOpenSettings && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onOpenSettings}
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+        >
+          <Gear size={24} />
+        </Button>
+      )}
+      
       <div className="w-full max-w-2xl">
         <h1 className="text-6xl md:text-7xl font-bold text-center mb-16 tracking-tight">
           INFINITY

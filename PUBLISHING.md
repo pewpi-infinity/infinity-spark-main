@@ -1,25 +1,57 @@
-# INFINITY Publishing Guide
+# Publishing Guide
 
 ## 📋 Overview
 
-INFINITY generates real HTML pages that need to be committed to your repository for GitHub Pages to serve them. This guide explains the publishing process and file structure requirements.
+This system generates real HTML pages published under **personalized site identities**. Each user/site has its own name (e.g., "Pixie", "Kris") — **no generic "spark" branding visible**.
 
-## 🏗️ Page File Structure
+## 🏗️ Personalized Site Structure
 
-When you publish a page, INFINITY creates the following structure:
+### Critical Concept: Site Identity
+
+Your pages publish to a **personalized site root**, not a shared directory:
 
 ```
-/pages/
-  {page-slug}/
-    index.html      ← REQUIRED: Main page content
-    page.json       ← Metadata and configuration
+/{YourSiteName}/
+  index.html
+  pages/
+    page-slug-1/
+      index.html
+    page-slug-2/
+      index.html
 ```
 
-### Critical Requirements
+### Examples
 
-1. **File must be named `index.html`** - No other filename will work with GitHub Pages
-2. **Must be in `/pages/{slug}/` directory** - The slug is auto-generated from your page title
-3. **GitHub Pages root** - System auto-detects if your Pages serves from `/` or `/docs`
+**Pixie's site:**
+```
+/Pixie/
+  pages/
+    memory-1/
+      index.html
+      page.json
+```
+URL: `https://pewpi-infinity.github.io/infinity-spark/Pixie/pages/memory-1/`
+
+**Kris's site:**
+```
+/Kris/
+  pages/
+    hydrogen-programming/
+      index.html
+      page.json
+```
+URL: `https://pewpi-infinity.github.io/infinity-spark/Kris/pages/hydrogen-programming/`
+
+## ⚙️ Site Configuration
+
+Click the ⚙️ gear icon on the search page to configure:
+
+- **Site Name** - Your personalized identity (e.g., "Pixie", "Kris")
+- **Owner Name** - Your name
+- **GitHub Username** - Repository owner
+- **Repository Name** - Repo name
+
+This determines where all your pages publish.
 
 ## 🚀 Publishing Process
 
@@ -82,19 +114,20 @@ Click "Publish Page" to:
 
 ## 📁 File Structure Details
 
-### Example: "Hydrogen Programming" page
+### Example: "Hydrogen Programming" page in Kris's site
 
 ```
 Repository Root
-├── pages/
-│   └── hydrogen-programming/
-│       ├── index.html          ✅ Required
-│       └── page.json           ✅ Metadata
+├── Kris/
+│   └── pages/
+│       └── hydrogen-programming/
+│           ├── index.html          ✅ Required
+│           └── page.json           ✅ Metadata
 ```
 
 **Live URL:**
 ```
-https://pewpi-infinity.github.io/infinity-spark/pages/hydrogen-programming/
+https://pewpi-infinity.github.io/infinity-spark/Kris/pages/hydrogen-programming/
 ```
 
 ### What Gets Created
@@ -102,7 +135,7 @@ https://pewpi-infinity.github.io/infinity-spark/pages/hydrogen-programming/
 **index.html** contains:
 - Full page HTML with inline CSS
 - Your content with selected features
-- SEO meta tags
+- SEO meta tags (with your site name)
 - Responsive design
 - All feature sections (charts, images, etc.)
 
@@ -115,7 +148,7 @@ https://pewpi-infinity.github.io/infinity-spark/pages/hydrogen-programming/
 
 ## 🔍 URL Verification
 
-INFINITY automatically verifies pages before marking as "Published":
+The system automatically verifies pages before marking as "Published":
 
 ```typescript
 // HEAD request to verify accessibility
@@ -143,10 +176,10 @@ System auto-detects your Pages configuration:
 const docsTest = await fetch('/docs/index.html', { method: 'HEAD' })
 if (docsTest.ok) {
   pagesRoot = '/docs'
-  filePath = '/docs/pages/{slug}/index.html'
+  filePath = '/docs/{SiteName}/pages/{slug}/index.html'
 } else {
   pagesRoot = '/'
-  filePath = '/pages/{slug}/index.html'
+  filePath = '/{SiteName}/pages/{slug}/index.html'
 }
 ```
 
@@ -158,13 +191,13 @@ Published pages show a "Download Page Files" button that exports:
 
 You can:
 1. Download files
-2. Commit to your repo
+2. Commit to your repo at `/{YourSiteName}/pages/{slug}/`
 3. Push to trigger Pages rebuild
 4. Verify at the generated URL
 
 ## 🔄 Rebuild Trigger
 
-If a page stays in "Awaiting Build" for >2 minutes, INFINITY automatically:
+If a page stays in "Awaiting Build" for >2 minutes, the system automatically:
 1. Creates `.gitpages-rebuild` file
 2. Commits with timestamp
 3. Triggers GitHub Pages rebuild
@@ -173,7 +206,7 @@ If a page stays in "Awaiting Build" for >2 minutes, INFINITY automatically:
 
 A page is only marked **✅ Published** when:
 - [x] HTML file generated with proper structure
-- [x] File path is `/pages/{slug}/index.html`
+- [x] File path is `/{SiteName}/pages/{slug}/index.html`
 - [x] Metadata JSON created
 - [x] Data stored in KV
 - [x] URL verification returns 200
@@ -199,7 +232,7 @@ Token: INF-MK6GQNUR-YP34FGV
   ↓ Promoted to Page
 Page ID: PAGE-MK6GRT91
   ↓ Published
-URL: https://pewpi-infinity.github.io/infinity-spark/pages/hydrogen-programming/
+URL: https://pewpi-infinity.github.io/infinity-spark/Kris/pages/hydrogen-programming/
 ```
 
 View tokens to see their published URLs and navigate directly.
@@ -241,25 +274,33 @@ You can modify any preset during feature selection.
 
 ### File Not Found
 - **Cause**: Wrong file path or missing `index.html`
-- **Solution**: Verify `/pages/{slug}/index.html` exists
+- **Solution**: Verify `/{SiteName}/pages/{slug}/index.html` exists
 
 ### URL Never Verifies
 - **Cause**: Repository Pages not enabled or wrong root
 - **Solution**: Check GitHub Pages settings
 
+### Wrong Site Name in URL
+- **Cause**: Site configuration not set
+- **Solution**: Click gear icon, configure your site name
+
 ## 💡 Best Practices
 
-1. **Choose structure first** - It sets smart defaults
-2. **Be selective with features** - Only add what you need
-3. **Wait for verification** - Don't share until "Published" status
-4. **Download files** - Keep local backups
-5. **Check analytics** - Monitor engagement
+1. **Configure site first** - Set your personalized site name before publishing
+2. **Choose structure wisely** - It sets smart defaults
+3. **Be selective with features** - Only add what you need
+4. **Wait for verification** - Don't share until "Published" status
+5. **Download files** - Keep local backups
+6. **Check analytics** - Monitor engagement
 
 ## 🎯 Design Philosophy
 
+> **Spark is invisible.**
+> Your site name is the brand.
+> Pages live under your identity, not "spark" or generic paths.
+> 
 > A page does not exist unless it has a URL.
 > UI previews are not pages.
-> Text blocks are not pages.
-> "Published" without a link is invalid.
+> "Published" without a verified link is invalid.
 
-INFINITY enforces real publishing with verified URLs, turning your searches into permanent digital artifacts.
+The system enforces real publishing with verified URLs and personalized site identities, turning your searches into permanent digital artifacts under **your name**.

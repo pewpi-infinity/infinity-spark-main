@@ -1,4 +1,5 @@
 import type { BuildPage, PageFeatures } from '@/types'
+import { getSiteConfig } from '@/lib/siteConfig'
 
 interface PublishResult {
   success: boolean
@@ -36,7 +37,8 @@ function generateSlug(title: string): string {
     .trim()
 }
 
-function generatePageHTML(page: BuildPage): string {
+async function generatePageHTML(page: BuildPage): Promise<string> {
+  const siteConfig = await getSiteConfig()
   const enabledFeatures = Object.entries(page.features)
     .filter(([_, enabled]) => enabled)
     .map(([key]) => key)
@@ -55,7 +57,7 @@ function generatePageHTML(page: BuildPage): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${page.title} | INFINITY</title>
+    <title>${page.title} | ${siteConfig.siteName}</title>
     <meta name="description" content="${page.content.substring(0, 160).replace(/"/g, '&quot;')}">
     <meta name="keywords" content="${page.tags.join(', ')}">
     <meta property="og:title" content="${page.title}">
@@ -314,7 +316,7 @@ function generatePageHTML(page: BuildPage): string {
         </main>
         
         <footer>
-            <p>Published with INFINITY • ${new Date(page.timestamp).toLocaleDateString()}</p>
+            <p>Published with ${siteConfig.siteName} • ${new Date(page.timestamp).toLocaleDateString()}</p>
             <p style="margin-top: 0.5rem;">
                 Generated from search query: "${page.title}"
             </p>
@@ -357,16 +359,14 @@ async function detectGitHubPagesRoot(): Promise<'/' | '/docs'> {
 
 export async function publishPage(page: BuildPage): Promise<PublishResult> {
   try {
+    const siteConfig = await getSiteConfig()
     const slug = generateSlug(page.title)
-    const html = generatePageHTML({ ...page, slug })
+    const html = await generatePageHTML({ ...page, slug })
     const metadata = generatePageMetadata({ ...page, slug })
 
-    const pagesRoot = await detectGitHubPagesRoot()
+    const pagesRoot = siteConfig.pagesRoot
     
-    const githubUser = 'pewpi-infinity'
-    const repoName = 'infinity-spark'
-    const baseUrl = `https://${githubUser}.github.io/${repoName}`
-    const pageUrl = `${baseUrl}/pages/${slug}/`
+    const pageUrl = `${siteConfig.baseUrl}/${siteConfig.siteName}/pages/${slug}/`
 
     const pageData: PageData = {
       html,
@@ -379,11 +379,12 @@ export async function publishPage(page: BuildPage): Promise<PublishResult> {
 
     const fileStructure = {
       root: pagesRoot === '/docs' ? 'docs' : '',
-      path: `pages/${slug}/index.html`,
-      metadata: `pages/${slug}/page.json`,
+      sitePath: `${siteConfig.siteName}/pages/${slug}/`,
+      path: `${siteConfig.siteName}/pages/${slug}/index.html`,
+      metadata: `${siteConfig.siteName}/pages/${slug}/page.json`,
       fullPath: pagesRoot === '/docs' 
-        ? `/docs/pages/${slug}/index.html`
-        : `/pages/${slug}/index.html`
+        ? `/docs/${siteConfig.siteName}/pages/${slug}/index.html`
+        : `/${siteConfig.siteName}/pages/${slug}/index.html`
     }
 
     await spark.kv.set(`published-page-${page.id}`, pageData)

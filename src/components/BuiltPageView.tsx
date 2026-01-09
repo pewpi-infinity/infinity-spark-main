@@ -20,6 +20,7 @@ import {
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { publishPage } from '@/lib/publisher'
+import { getSiteConfig } from '@/lib/siteConfig'
 import { trackPageView, trackPageShare, initializePageAnalytics } from '@/lib/analytics'
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
 import { PageFilesView } from '@/components/PageFilesView'
@@ -31,8 +32,27 @@ interface BuiltPageViewProps {
   onPageUpdate: (updatedPage: BuildPage) => void
 }
 
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+}
+
 export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps) {
   const [isPublishing, setIsPublishing] = useState(false)
+  const [previewPath, setPreviewPath] = useState('')
+
+  useEffect(() => {
+    async function loadPreviewPath() {
+      const config = await getSiteConfig()
+      const slug = generateSlug(page.title)
+      setPreviewPath(`/${config.siteName}/pages/${slug}/index.html`)
+    }
+    loadPreviewPath()
+  }, [page.title])
 
   useEffect(() => {
     if (!page.analytics) {
@@ -298,7 +318,13 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                 <div className="text-center space-y-4">
                   <h3 className="text-xl font-semibold">Ready to Publish?</h3>
                   <p className="text-muted-foreground">
-                    Publishing will create a permanent HTML file at /pages/{page.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')}/index.html with a live URL that you can share.
+                    Publishing will create a permanent HTML file at:
+                  </p>
+                  <div className="bg-card/50 rounded-lg p-4 font-mono text-sm break-all">
+                    {previewPath || 'Loading...'}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    This page will have a live URL that you can share.
                   </p>
                   <Button
                     onClick={handlePublish}

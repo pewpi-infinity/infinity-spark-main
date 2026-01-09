@@ -70,11 +70,18 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Success criteria**: Generated pages are functional and include only selected features
 
 ### Real Page Publication System
-- **Functionality**: Converts draft pages into live HTML files with permanent URLs through actual file creation and registry, verifies URL accessibility before declaring success
-- **Purpose**: Transforms ephemeral content into real, shareable web pages with persistent URLs that actually work
+- **Functionality**: Converts draft pages into live HTML files with permanent URLs through actual file creation under personalized site identities, verifies URL accessibility before declaring success
+- **Purpose**: Transforms ephemeral content into real, shareable web pages with persistent URLs under user's personalized site name (not generic "spark" branding)
 - **Trigger**: User clicks "Publish Page" button on built page
-- **Progression**: Publish initiated → HTML file generated with all selected features → metadata JSON created → page data stored in KV with file structure → URL verification attempted → if URL returns 200, marked as "Published" → if URL returns 404, marked as "Awaiting Pages Build" → live URL computed and displayed → user can view/share live page or download files
-- **Success criteria**: Published pages have real URLs with verified accessibility, show correct status badge ("Published" with green checkmark only when URL verified, "Awaiting Pages Build" when pending), display live link, provide file structure view, allow file downloads, create proper /pages/{slug}/index.html structure
+- **Progression**: Publish initiated → site config retrieved → HTML file generated with all selected features → metadata JSON created → page data stored in KV with personalized file structure (/{SiteName}/pages/{slug}/index.html) → URL verification attempted → if URL returns 200, marked as "Published" → if URL returns 404, marked as "Awaiting Pages Build" → live URL computed and displayed with site name → user can view/share live page or download files
+- **Success criteria**: Published pages have real URLs with verified accessibility under personalized site paths, show correct status badge ("Published" with green checkmark only when URL verified, "Awaiting Pages Build" when pending), display live link with site name, provide file structure view, allow file downloads, create proper /{SiteName}/pages/{slug}/index.html structure
+
+### Site Configuration System
+- **Functionality**: Allows users to configure their personalized site identity including site name, owner name, GitHub username, and repository name
+- **Purpose**: Enables personalized publishing where pages live under user's chosen site name (e.g., "Pixie", "Kris") rather than generic "infinity-spark" branding
+- **Trigger**: User clicks gear icon on search page or system detects missing configuration
+- **Progression**: Configuration dialog opens → user enters site name, owner name, GitHub username, repo name → preview URL shown with personalized path → configuration saved to KV → all future pages publish to /{SiteName}/pages/ structure
+- **Success criteria**: Site name is visible in all published URLs and page footers, no "infinity-spark" or "INFINITY" branding visible to end users viewing published pages, configuration persists across sessions, preview path accurately reflects final URL structure
 
 ### Secondary Page Index
 - **Functionality**: Maintains searchable catalog of built pages showing draft vs published status

@@ -8,6 +8,8 @@ import { BuiltPageView } from '@/components/BuiltPageView'
 import { PageIndex } from '@/components/PageIndex'
 import { LocalSearch } from '@/components/LocalSearch'
 import { TokenView } from '@/components/TokenView'
+import { SiteConfigDialog } from '@/components/SiteConfigDialog'
+import { useSiteConfig } from '@/lib/siteConfig'
 import { Toaster, toast } from 'sonner'
 import { processSearch, createToken } from '@/lib/search'
 import { initializeTokenAnalytics, trackTokenPromotion } from '@/lib/analytics'
@@ -25,9 +27,11 @@ function App() {
   const [showFeatureSelection, setShowFeatureSelection] = useState(false)
   const [selectedStructure, setSelectedStructure] = useState<PageStructure | null>(null)
   const [customPageTitle, setCustomPageTitle] = useState<string>('')
+  const [showSiteConfig, setShowSiteConfig] = useState(false)
 
   const [tokens, setTokens] = useKV<Token[]>('infinity-tokens', [])
   const [pages, setPages] = useKV<BuildPage[]>('infinity-pages', [])
+  const [siteConfig, updateSiteConfig] = useSiteConfig()
 
   const handleSearch = async (query: string) => {
     setIsProcessing(true)
@@ -167,6 +171,7 @@ function App() {
           onSearch={handleSearch}
           onViewArchives={handleViewLocalSearch}
           onViewPages={handleViewIndex}
+          onOpenSettings={() => setShowSiteConfig(true)}
           hasTokens={tokenCount > 0}
           hasPages={pageCount > 0}
         />
@@ -231,6 +236,15 @@ function App() {
         onComplete={handleFeatureSelection}
         onCancel={handleFeatureCancel}
       />
+
+      {siteConfig && (
+        <SiteConfigDialog
+          open={showSiteConfig}
+          config={siteConfig}
+          onClose={() => setShowSiteConfig(false)}
+          onSave={updateSiteConfig}
+        />
+      )}
     </>
   )
 }
