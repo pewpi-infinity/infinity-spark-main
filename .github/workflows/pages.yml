@@ -1,4 +1,4 @@
-name: Deploy Pages
+name: Deploy GitHub Pages
 
 on:
   push:
@@ -8,6 +8,10 @@ permissions:
   contents: read
   pages: write
   id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -20,10 +24,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build page
-        run: node scripts/build-pages.js
+      - name: Install dependencies
+        run: npm install
 
-      - name: Upload Pages
+      - name: Build Spark site
+        run: npm run build
+
+      - name: Upload Pages artifact (ONLY dist)
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -32,5 +39,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/deploy-pages@v4
-      
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        
