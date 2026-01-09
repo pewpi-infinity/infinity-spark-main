@@ -170,7 +170,9 @@ function App() {
       {view === 'tokenView' && currentToken && (
         <TokenView
           token={currentToken}
+          pages={pages || []}
           onBack={() => setView('localSearch')}
+          onViewPage={handleViewPage}
         />
       )}
 
