@@ -76,6 +76,20 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Progression**: Page structure determined → ad zones identified → semantic matching applied → ads rendered based on page content and user context
 - **Success criteria**: Ads feel native to content, vary by user, match page semantics
 
+### Archive Search System
+- **Functionality**: Comprehensive search across all existing tokens and pages with filtering and relevance scoring
+- **Purpose**: Makes historical content discoverable and reusable without cluttering the main interface
+- **Trigger**: User clicks "Search Archives" button on main search page or page index
+- **Progression**: Archive search view opens → user enters search query → results filtered by type (all/tokens/pages) and promotion status → results ranked by relevance → user views individual tokens or pages
+- **Success criteria**: Users can quickly find previously created tokens and pages, search highlights matching terms, filters work correctly
+
+### Token Viewing
+- **Functionality**: Dedicated view for individual token inspection showing query, content, metadata, and promotion status
+- **Purpose**: Provides detailed access to token information and history
+- **Trigger**: User selects a token from archive search results
+- **Progression**: Token selected → dedicated view opens → displays full token details → user can navigate back to search
+- **Success criteria**: All token information is clearly displayed, promoted tokens show page link
+
 ## Edge Case Handling
 
 - **Empty Search Query** - Show gentle prompt to enter a query before submission
@@ -85,6 +99,9 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Failed Content Generation** - Gracefully show error, still mint token for query attempt
 - **No Feature Selection** - If user declines all enhancements, create minimal content-only page
 - **Search for Existing Page** - Show existing page in results, offer to view or rebuild
+- **Empty Archive Search** - Display message when no tokens or pages exist yet
+- **No Archive Search Results** - Show helpful message when query matches nothing, suggest adjusting filters
+- **Viewing Promoted Tokens** - Show link to associated page when viewing promoted token details
 
 ## Design Direction
 

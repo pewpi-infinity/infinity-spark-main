@@ -5,11 +5,13 @@ import { ResultPage } from '@/components/ResultPage'
 import { FeatureSelection } from '@/components/FeatureSelection'
 import { BuiltPageView } from '@/components/BuiltPageView'
 import { PageIndex } from '@/components/PageIndex'
+import { LocalSearch } from '@/components/LocalSearch'
+import { TokenView } from '@/components/TokenView'
 import { Toaster, toast } from 'sonner'
 import { processSearch, createToken } from '@/lib/search'
 import type { Token, SearchResult, PageFeatures, BuildPage } from '@/types'
 
-type AppView = 'search' | 'result' | 'building' | 'page' | 'index'
+type AppView = 'search' | 'result' | 'building' | 'page' | 'index' | 'localSearch' | 'tokenView'
 
 function App() {
   const [view, setView] = useState<AppView>('search')
@@ -95,24 +97,30 @@ function App() {
     setView('index')
   }
 
+  const handleViewLocalSearch = () => {
+    setView('localSearch')
+  }
+
+  const handleViewToken = (token: Token) => {
+    setCurrentToken(token)
+    setView('tokenView')
+  }
+
   const pageCount = pages?.length || 0
+  const tokenCount = tokens?.length || 0
 
   return (
     <>
       <Toaster position="top-center" theme="dark" />
 
       {view === 'search' && (
-        <div className="relative">
-          <SearchIndex onSearch={handleSearch} />
-          {pageCount > 0 && (
-            <button
-              onClick={handleViewIndex}
-              className="fixed bottom-8 right-8 px-6 py-3 bg-accent hover:bg-accent/90 text-accent-foreground rounded-full font-medium shadow-lg transition-all hover:scale-105"
-            >
-              View Pages ({pageCount})
-            </button>
-          )}
-        </div>
+        <SearchIndex
+          onSearch={handleSearch}
+          onViewArchives={handleViewLocalSearch}
+          onViewPages={handleViewIndex}
+          hasTokens={tokenCount > 0}
+          hasPages={pageCount > 0}
+        />
       )}
 
       {view === 'result' && currentResult && currentToken && (
@@ -133,6 +141,24 @@ function App() {
           pages={pages || []}
           onViewPage={handleViewPage}
           onBack={handleBackToSearch}
+          onSearchArchives={handleViewLocalSearch}
+        />
+      )}
+
+      {view === 'localSearch' && (
+        <LocalSearch
+          tokens={tokens || []}
+          pages={pages || []}
+          onViewToken={handleViewToken}
+          onViewPage={handleViewPage}
+          onBack={handleBackToSearch}
+        />
+      )}
+
+      {view === 'tokenView' && currentToken && (
+        <TokenView
+          token={currentToken}
+          onBack={() => setView('localSearch')}
         />
       )}
 

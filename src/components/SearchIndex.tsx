@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import { MagnifyingGlass, MagnifyingGlassPlus, Files } from '@phosphor-icons/react'
 
 interface SearchIndexProps {
   onSearch: (query: string) => void
+  onViewArchives?: () => void
+  onViewPages?: () => void
+  hasTokens?: boolean
+  hasPages?: boolean
 }
 
-export function SearchIndex({ onSearch }: SearchIndexProps) {
+export function SearchIndex({ onSearch, onViewArchives, onViewPages, hasTokens, hasPages }: SearchIndexProps) {
   const [query, setQuery] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -17,8 +21,10 @@ export function SearchIndex({ onSearch }: SearchIndexProps) {
     }
   }
 
+  const showArchiveButtons = (hasTokens || hasPages) && (onViewArchives || onViewPages)
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 relative">
       <div className="w-full max-w-2xl">
         <h1 className="text-6xl md:text-7xl font-bold text-center mb-16 tracking-tight">
           INFINITY
@@ -43,6 +49,31 @@ export function SearchIndex({ onSearch }: SearchIndexProps) {
             </Button>
           </div>
         </form>
+
+        {showArchiveButtons && (
+          <div className="flex gap-3 justify-center mt-6">
+            {onViewArchives && (hasTokens || hasPages) && (
+              <Button
+                variant="outline"
+                onClick={onViewArchives}
+                className="gap-2"
+              >
+                <MagnifyingGlassPlus size={20} />
+                Search Archives
+              </Button>
+            )}
+            {onViewPages && hasPages && (
+              <Button
+                variant="outline"
+                onClick={onViewPages}
+                className="gap-2"
+              >
+                <Files size={20} />
+                View Pages
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,16 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Eye, ArrowLeft } from '@phosphor-icons/react'
+import { Eye, ArrowLeft, MagnifyingGlassPlus } from '@phosphor-icons/react'
 import type { BuildPage } from '@/types'
 
 interface PageIndexProps {
   pages: BuildPage[]
   onViewPage: (page: BuildPage) => void
   onBack: () => void
+  onSearchArchives?: () => void
 }
 
-export function PageIndex({ pages, onViewPage, onBack }: PageIndexProps) {
+export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageIndexProps) {
   if (pages.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -38,13 +39,24 @@ export function PageIndex({ pages, onViewPage, onBack }: PageIndexProps) {
               {pages.length} {pages.length === 1 ? 'page' : 'pages'} published
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={onBack}
-          >
-            <ArrowLeft className="mr-2" size={20} />
-            New Search
-          </Button>
+          <div className="flex gap-2">
+            {onSearchArchives && (
+              <Button
+                variant="outline"
+                onClick={onSearchArchives}
+              >
+                <MagnifyingGlassPlus className="mr-2" size={20} />
+                Search All
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={onBack}
+            >
+              <ArrowLeft className="mr-2" size={20} />
+              New Search
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
