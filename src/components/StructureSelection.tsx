@@ -88,15 +88,15 @@ export function StructureSelection({ open, defaultTitle = '', onComplete, onCanc
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-      <DialogContent className="sm:max-w-3xl bg-card/95 backdrop-blur-lg">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] bg-card/95 backdrop-blur-lg overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-2xl">What do you want this to become?</DialogTitle>
           <DialogDescription>
             Choose a structure and give your page a name
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-y-auto flex-1 pr-2">
           <div className="space-y-2">
             <Label htmlFor="page-title" className="text-base">Page Name</Label>
             <Input
@@ -134,23 +134,23 @@ export function StructureSelection({ open, defaultTitle = '', onComplete, onCanc
               </Card>
             ))}
           </div>
+        </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleContinue}
-              disabled={!selectedStructure || !customTitle.trim()}
-              className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-            >
-              Continue
-            </Button>
-          </div>
+        <div className="flex gap-3 pt-4 flex-shrink-0 border-t border-border mt-4">
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleContinue}
+            disabled={!selectedStructure || !customTitle.trim()}
+            className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+          >
+            Continue
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
