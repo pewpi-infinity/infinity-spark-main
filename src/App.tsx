@@ -24,6 +24,7 @@ function App() {
   const [showStructureSelection, setShowStructureSelection] = useState(false)
   const [showFeatureSelection, setShowFeatureSelection] = useState(false)
   const [selectedStructure, setSelectedStructure] = useState<PageStructure | null>(null)
+  const [customPageTitle, setCustomPageTitle] = useState<string>('')
 
   const [tokens, setTokens] = useKV<Token[]>('infinity-tokens', [])
   const [pages, setPages] = useKV<BuildPage[]>('infinity-pages', [])
@@ -59,19 +60,28 @@ function App() {
     setShowStructureSelection(true)
   }
 
-  const handleStructureSelection = (structure: PageStructure) => {
+  const handleStructureSelection = (structure: PageStructure, customTitle: string) => {
     setSelectedStructure(structure)
+    setCustomPageTitle(customTitle)
     setShowStructureSelection(false)
     setShowFeatureSelection(true)
+  }
+
+  const handleStructureCancel = () => {
+    setShowStructureSelection(false)
+    setSelectedStructure(null)
+    setCustomPageTitle('')
   }
 
   const handleFeatureSelection = (features: PageFeatures) => {
     if (!currentResult || !currentToken || !selectedStructure) return
 
+    const pageTitle = customPageTitle || currentResult.query
+
     const page: BuildPage = {
       id: `PAGE-${Date.now().toString(36).toUpperCase()}`,
       tokenId: currentToken.id,
-      title: currentResult.query,
+      title: pageTitle,
       content: currentResult.content,
       structure: selectedStructure,
       features,
@@ -94,9 +104,16 @@ function App() {
     setCurrentPage(page)
     setShowFeatureSelection(false)
     setSelectedStructure(null)
+    setCustomPageTitle('')
     setView('page')
 
     toast.success('Page built successfully!')
+  }
+
+  const handleFeatureCancel = () => {
+    setShowFeatureSelection(false)
+    setSelectedStructure(null)
+    setCustomPageTitle('')
   }
 
   const handleBackToSearch = () => {
@@ -203,13 +220,16 @@ function App() {
 
       <StructureSelection
         open={showStructureSelection}
+        defaultTitle={currentResult?.query}
         onComplete={handleStructureSelection}
+        onCancel={handleStructureCancel}
       />
 
       <FeatureSelection
         open={showFeatureSelection}
         structure={selectedStructure || undefined}
         onComplete={handleFeatureSelection}
+        onCancel={handleFeatureCancel}
       />
     </>
   )

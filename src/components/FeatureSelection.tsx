@@ -101,9 +101,10 @@ interface FeatureSelectionProps {
   open: boolean
   structure?: PageStructure
   onComplete: (features: PageFeatures) => void
+  onCancel: () => void
 }
 
-export function FeatureSelection({ open, structure, onComplete }: FeatureSelectionProps) {
+export function FeatureSelection({ open, structure, onComplete, onCancel }: FeatureSelectionProps) {
   const presets = getStructurePresets(structure)
   
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -121,6 +122,20 @@ export function FeatureSelection({ open, structure, onComplete }: FeatureSelecti
   const currentFeature = featureOptions[currentIndex]
   const progress = ((currentIndex + 1) / featureOptions.length) * 100
 
+  const resetState = () => {
+    setCurrentIndex(0)
+    setFeatures({
+      charts: presets.charts || false,
+      images: presets.images || false,
+      audio: presets.audio || false,
+      video: presets.video || false,
+      files: presets.files || false,
+      widgets: presets.widgets || false,
+      navigation: presets.navigation || false,
+      monetization: presets.monetization || false,
+    })
+  }
+
   const handleChoice = (include: boolean) => {
     const updatedFeatures = {
       ...features,
@@ -132,24 +147,19 @@ export function FeatureSelection({ open, structure, onComplete }: FeatureSelecti
       setCurrentIndex(currentIndex + 1)
     } else {
       onComplete(updatedFeatures)
-      setCurrentIndex(0)
-      setFeatures({
-        charts: presets.charts || false,
-        images: presets.images || false,
-        audio: presets.audio || false,
-        video: presets.video || false,
-        files: presets.files || false,
-        widgets: presets.widgets || false,
-        navigation: presets.navigation || false,
-        monetization: presets.monetization || false,
-      })
+      resetState()
     }
+  }
+
+  const handleCancel = () => {
+    resetState()
+    onCancel()
   }
 
   if (!open) return null
 
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
       <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-lg">
         <DialogHeader>
           <DialogTitle className="text-2xl">Customize Your Page</DialogTitle>
