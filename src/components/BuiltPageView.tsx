@@ -348,94 +348,194 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
             <PageFilesView page={page} />
           )}
 
-          {!page.published && page.publishStatus !== 'awaiting-build' && (
-            <Card className="bg-accent/10 border-accent/30">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <h3 className="text-xl font-semibold">Ready to Publish?</h3>
-                  <p className="text-muted-foreground">
-                    Publishing will create a permanent HTML file at:
-                  </p>
-                  <div className="bg-card/50 rounded-lg p-4 font-mono text-sm break-all">
-                    {previewPath || 'Loading...'}
+          <Card className="bg-gradient-to-br from-accent/10 to-primary/5 border-accent/30">
+            <CardContent className="pt-6">
+              {!page.published && page.publishStatus !== 'awaiting-build' && (
+                <div className="text-center space-y-6">
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/20 mb-4">
+                      <Rocket size={32} className="text-accent" />
+                    </div>
+                    <h3 className="text-2xl font-bold">Ready to Publish</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Transform this page into a permanent, shareable website with its own URL
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    This page will have a live URL that you can share.
-                  </p>
+                  
+                  <div className="bg-card/70 backdrop-blur-sm rounded-xl p-5 border border-accent/20 space-y-3">
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                        1
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold">File Structure Created</p>
+                        <p className="text-xs text-muted-foreground font-mono mt-0.5">{previewPath || 'Loading...'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                        2
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold">GitHub Pages Hosting</p>
+                        <p className="text-xs text-muted-foreground">Live URL generated and verified</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                        3
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold">Search Engine Ready</p>
+                        <p className="text-xs text-muted-foreground">Metadata and tags optimized</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <Button
                     onClick={handlePublish}
                     disabled={isPublishing}
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    size="lg"
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg h-auto font-bold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <Rocket className="mr-2" size={20} />
-                    {isPublishing ? 'Publishing...' : 'Publish Page'}
+                    <Rocket className="mr-3" size={24} />
+                    {isPublishing ? 'Publishing...' : 'Publish Live Now'}
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {page.publishStatus === 'awaiting-build' && page.url && (
-            <Card className="bg-muted/20 border-muted">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <div className="animate-spin h-5 w-5 border-2 border-muted-foreground border-t-transparent rounded-full"></div>
-                    <h3 className="text-xl font-semibold">Awaiting GitHub Pages Build</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Your page has been submitted for publishing. GitHub Pages is currently building your site. This typically takes 90 seconds to 3 minutes.
-                  </p>
-                  <div className="bg-card/50 rounded-lg p-4 font-mono text-sm break-all">
-                    {page.url}
-                  </div>
+                  
                   <p className="text-xs text-muted-foreground">
-                    The page will be automatically marked as published once the build completes and the URL is verified.
+                    Publishing may take 2-3 minutes for GitHub Pages to build
                   </p>
-                  <Button
-                    onClick={handleRetryVerification}
-                    disabled={isVerifying}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {isVerifying ? 'Checking...' : 'Check if Live Now'}
-                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
 
-          {page.published && page.url && (
-            <Card className="bg-accent/10 border-accent/30">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-accent">
-                    <CheckCircle size={24} />
-                    <h3 className="text-xl font-semibold">Live Page Published</h3>
+              {page.publishStatus === 'awaiting-build' && page.url && (
+                <div className="space-y-6">
+                  <div className="text-center space-y-3">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/20 mb-4">
+                      <div className="animate-spin h-10 w-10 border-4 border-accent border-t-transparent rounded-full"></div>
+                    </div>
+                    <h3 className="text-2xl font-bold">Publishing in Progress</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Your page is being built on GitHub Pages. This typically completes in 90 seconds to 3 minutes.
+                    </p>
                   </div>
-                  <div className="bg-card/50 rounded-lg p-4 font-mono text-sm break-all">
-                    {page.url}
+
+                  <div className="bg-card/70 backdrop-blur-sm rounded-xl p-5 border border-muted space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Status:</span>
+                        <span className="font-semibold text-accent">Building...</span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Page URL:</span>
+                        </div>
+                        <div className="bg-card/50 rounded-lg p-3 font-mono text-xs break-all">
+                          {page.url}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleRetryVerification}
+                        disabled={isVerifying}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        {isVerifying ? (
+                          <>
+                            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+                            Checking...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="mr-2" size={16} />
+                            Check if Live
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={handleCopyUrl}
+                        variant="ghost"
+                        size="icon"
+                      >
+                        <LinkIcon size={16} />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-3">
+
+                  <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+                    <p className="text-sm text-center text-muted-foreground">
+                      💡 <strong>Tip:</strong> You can leave this page. The verification happens automatically in the background.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {page.published && page.url && (
+                <div className="space-y-6">
+                  <div className="text-center space-y-3">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/20 mb-4">
+                      <CheckCircle size={36} className="text-accent" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-accent">Live & Published!</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Your page is now live on the web. Share it with the world!
+                    </p>
+                  </div>
+
+                  <div className="bg-card/70 backdrop-blur-sm rounded-xl p-5 border border-accent/30 space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Status:</span>
+                        <span className="font-semibold text-accent flex items-center gap-1">
+                          <CheckCircle size={16} />
+                          Verified Live
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Live URL:</span>
+                        </div>
+                        <div className="bg-card/50 rounded-lg p-3 font-mono text-xs break-all border border-accent/20">
+                          {page.url}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        onClick={handleViewLive}
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
+                      >
+                        <LinkIcon className="mr-2" size={18} />
+                        View Live
+                      </Button>
+                      <Button
+                        onClick={handleCopyUrl}
+                        variant="outline"
+                        className="font-semibold"
+                      >
+                        Copy URL
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
                     <Button
-                      onClick={handleViewLive}
-                      className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-                    >
-                      <LinkIcon className="mr-2" size={20} />
-                      View Live Page
-                    </Button>
-                    <Button
-                      onClick={handleCopyUrl}
+                      onClick={handleShare}
                       variant="outline"
                       className="flex-1"
                     >
-                      Copy URL
+                      <ShareNetwork className="mr-2" size={18} />
+                      Share Page
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
           <Card className="bg-muted/20">
             <CardContent className="pt-6">
