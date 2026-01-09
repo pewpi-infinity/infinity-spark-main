@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Eye, ArrowLeft, MagnifyingGlassPlus } from '@phosphor-icons/react'
+import { Eye, ArrowLeft, MagnifyingGlassPlus, Link as LinkIcon, CheckCircle } from '@phosphor-icons/react'
 import type { BuildPage } from '@/types'
 
 interface PageIndexProps {
@@ -12,6 +12,8 @@ interface PageIndexProps {
 }
 
 export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageIndexProps) {
+  const publishedCount = pages.filter(p => p.published).length
+
   if (pages.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -36,7 +38,8 @@ export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageI
           <div>
             <h1 className="text-4xl font-bold mb-2">Your Pages</h1>
             <p className="text-muted-foreground">
-              {pages.length} {pages.length === 1 ? 'page' : 'pages'} published
+              {pages.length} {pages.length === 1 ? 'page' : 'pages'} total
+              {publishedCount > 0 && ` • ${publishedCount} published`}
             </p>
           </div>
           <div className="flex gap-2">
@@ -66,8 +69,19 @@ export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageI
               className="bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors"
             >
               <CardHeader>
-                <CardTitle className="text-xl line-clamp-2">{page.title}</CardTitle>
-                <div className="flex gap-2 flex-wrap mt-2">
+                <div className="flex items-start justify-between mb-2">
+                  <CardTitle className="text-xl line-clamp-2 flex-1">{page.title}</CardTitle>
+                  {page.published && (
+                    <Badge 
+                      variant="outline"
+                      className="bg-accent/20 text-accent border-accent/30 ml-2 shrink-0"
+                    >
+                      <CheckCircle className="mr-1" size={12} />
+                      Live
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex gap-2 flex-wrap">
                   {page.tags.slice(0, 3).map((tag, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
                       {tag}
@@ -86,13 +100,25 @@ export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageI
                     year: 'numeric'
                   })}
                 </div>
-                <Button
-                  onClick={() => onViewPage(page)}
-                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-                >
-                  <Eye className="mr-2" size={18} />
-                  View Page
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => onViewPage(page)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <Eye className="mr-2" size={18} />
+                    View
+                  </Button>
+                  {page.published && page.url && (
+                    <Button
+                      onClick={() => window.open(page.url, '_blank')}
+                      className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                    >
+                      <LinkIcon className="mr-2" size={18} />
+                      Live
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

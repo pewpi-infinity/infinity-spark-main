@@ -26,6 +26,10 @@ export interface BuildPage {
   features: PageFeatures
   timestamp: number
   tags: string[]
+  published: boolean
+  url?: string
+  slug?: string
+  publishedAt?: number
 }
 
 export interface SearchResult {

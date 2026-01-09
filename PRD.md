@@ -59,15 +59,22 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Functionality**: Generates page structure, assets, and code based on selected features
 - **Purpose**: Translates user choices into working page implementation without manual coding
 - **Trigger**: User completes feature selection
-- **Progression**: Choices collected → builder determines required assets → generates/retrieves files → assembles page structure → page becomes accessible
+- **Progression**: Choices collected → builder determines required assets → generates/retrieves files → assembles page structure → page becomes accessible as draft
 - **Success criteria**: Generated pages are functional and include only selected features
 
+### Real Page Publication System
+- **Functionality**: Converts draft pages into live HTML files with permanent URLs through actual file creation and registry
+- **Purpose**: Transforms ephemeral content into real, shareable web pages with persistent URLs
+- **Trigger**: User clicks "Publish Page" button on built page
+- **Progression**: Publish initiated → HTML file generated with all selected features → metadata JSON created → page data stored in KV → page registered in secondary index → live URL computed and displayed → user can view/share live page
+- **Success criteria**: Published pages have real URLs, show "Published" status with green badge, display live link, and can be opened in new tab
+
 ### Secondary Page Index
-- **Functionality**: Maintains searchable catalog of promoted pages without cluttering main index
+- **Functionality**: Maintains searchable catalog of built pages showing draft vs published status
 - **Purpose**: Provides discoverability for built pages while preserving index minimalism
-- **Trigger**: Page promotion completion
-- **Progression**: Page built → added to secondary index → grouped semantically → becomes searchable
-- **Success criteria**: Main index remains minimal, built pages are discoverable via search
+- **Trigger**: Page build completion (draft) or publication (live)
+- **Progression**: Page built → added to secondary index as draft → when published, registry updated with URL → becomes fully discoverable
+- **Success criteria**: Main index remains minimal, built pages are discoverable via index, published pages show live badges and URLs
 
 ### Contextual Revenue Integration
 - **Functionality**: Automatically injects ad placement zones into promoted pages
@@ -98,6 +105,10 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Page Build Cancellation** - Allow exit at any point during feature selection, preserve token and basic result
 - **Failed Content Generation** - Gracefully show error, still mint token for query attempt
 - **No Feature Selection** - If user declines all enhancements, create minimal content-only page
+- **Publication Failure** - Show error toast, keep page in draft state, allow retry
+- **Unpublished Pages** - Display "⚠️ Draft" badge, show publish button with explanation
+- **Published Pages** - Display "✅ Published" badge with checkmark, show live URL prominently, provide copy and open buttons
+- **URL Generation** - Compute URLs using GitHub Pages pattern: `https://pewpi-infinity.github.io/infinity-spark/pages/{slug}/`
 - **Search for Existing Page** - Show existing page in results, offer to view or rebuild
 - **Empty Archive Search** - Display message when no tokens or pages exist yet
 - **No Archive Search Results** - Show helpful message when query matches nothing, suggest adjusting filters

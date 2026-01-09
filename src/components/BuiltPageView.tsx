@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -12,15 +13,23 @@ import {
   GridFour,
   NavigationArrow,
   CurrencyDollar,
+  Rocket,
+  Link as LinkIcon,
+  CheckCircle,
 } from '@phosphor-icons/react'
+import { toast } from 'sonner'
+import { publishPage } from '@/lib/publisher'
 import type { BuildPage } from '@/types'
 
 interface BuiltPageViewProps {
   page: BuildPage
   onBack: () => void
+  onPageUpdate: (updatedPage: BuildPage) => void
 }
 
-export function BuiltPageView({ page, onBack }: BuiltPageViewProps) {
+export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps) {
+  const [isPublishing, setIsPublishing] = useState(false)
+
   const featureIcons = {
     charts: <ChartBar size={20} />,
     images: <Image size={20} />,
@@ -35,6 +44,51 @@ export function BuiltPageView({ page, onBack }: BuiltPageViewProps) {
   const enabledFeatures = Object.entries(page.features)
     .filter(([_, enabled]) => enabled)
     .map(([key]) => key as keyof typeof featureIcons)
+
+  const handlePublish = async () => {
+    setIsPublishing(true)
+    toast.loading('Publishing page...')
+
+    try {
+      const result = await publishPage(page)
+
+      if (result.success && result.url) {
+        const updatedPage: BuildPage = {
+          ...page,
+          published: true,
+          url: result.url,
+          publishedAt: Date.now(),
+        }
+
+        onPageUpdate(updatedPage)
+
+        toast.dismiss()
+        toast.success('Page published successfully!')
+      } else {
+        toast.dismiss()
+        toast.error(result.error || 'Failed to publish page')
+      }
+    } catch (error) {
+      toast.dismiss()
+      toast.error('Failed to publish page')
+      console.error(error)
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
+  const handleViewLive = () => {
+    if (page.url) {
+      window.open(page.url, '_blank')
+    }
+  }
+
+  const handleCopyUrl = () => {
+    if (page.url) {
+      navigator.clipboard.writeText(page.url)
+      toast.success('URL copied to clipboard')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,7 +106,7 @@ export function BuiltPageView({ page, onBack }: BuiltPageViewProps) {
           <Card className="bg-card/50 backdrop-blur-sm border-accent/30">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div className="space-y-2">
+                <div className="space-y-2 flex-1">
                   <CardTitle className="text-4xl">{page.title}</CardTitle>
                   <div className="flex gap-2 flex-wrap">
                     {page.tags.map((tag, index) => (
@@ -62,8 +116,22 @@ export function BuiltPageView({ page, onBack }: BuiltPageViewProps) {
                     ))}
                   </div>
                 </div>
-                <Badge className="bg-accent/20 text-accent border-accent/30" variant="outline">
-                  Published
+                <Badge 
+                  className={
+                    page.published 
+                      ? "bg-accent/20 text-accent border-accent/30" 
+                      : "bg-muted/20 text-muted-foreground border-muted"
+                  }
+                  variant="outline"
+                >
+                  {page.published ? (
+                    <>
+                      <CheckCircle className="mr-1" size={16} />
+                      Published
+                    </>
+                  ) : (
+                    <>⚠️ Draft</>
+                  )}
                 </Badge>
               </div>
             </CardHeader>
@@ -142,9 +210,62 @@ export function BuiltPageView({ page, onBack }: BuiltPageViewProps) {
             </CardContent>
           </Card>
 
+          {!page.published && (
+            <Card className="bg-accent/10 border-accent/30">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <h3 className="text-xl font-semibold">Ready to Publish?</h3>
+                  <p className="text-muted-foreground">
+                    Publishing will create a permanent HTML file with a live URL that you can share.
+                  </p>
+                  <Button
+                    onClick={handlePublish}
+                    disabled={isPublishing}
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                  >
+                    <Rocket className="mr-2" size={20} />
+                    {isPublishing ? 'Publishing...' : 'Publish Page'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {page.published && page.url && (
+            <Card className="bg-accent/10 border-accent/30">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-accent">
+                    <CheckCircle size={24} />
+                    <h3 className="text-xl font-semibold">Live Page Published</h3>
+                  </div>
+                  <div className="bg-card/50 rounded-lg p-4 font-mono text-sm break-all">
+                    {page.url}
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={handleViewLive}
+                      className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                    >
+                      <LinkIcon className="mr-2" size={20} />
+                      View Live Page
+                    </Button>
+                    <Button
+                      onClick={handleCopyUrl}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Copy URL
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="bg-muted/20">
             <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground space-y-1">
                 <p className="font-mono">Page ID: {page.id}</p>
                 <p className="font-mono">Token: {page.tokenId}</p>
                 <p>
@@ -156,6 +277,17 @@ export function BuiltPageView({ page, onBack }: BuiltPageViewProps) {
                     minute: '2-digit'
                   })}
                 </p>
+                {page.publishedAt && (
+                  <p>
+                    Published: {new Date(page.publishedAt).toLocaleString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

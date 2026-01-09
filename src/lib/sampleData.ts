@@ -57,7 +57,8 @@ export function createSamplePages(): BuildPage[] {
       content: 'Quantum computing harnesses the unique behavior of quantum physics to process information in fundamentally new ways. Unlike classical computers that use bits (0 or 1), quantum computers use qubits that can exist in multiple states simultaneously through superposition. This enables them to solve certain problems exponentially faster than classical computers.',
       features: { ...defaultFeatures, charts: true, images: true },
       timestamp: now - 86400000 * 5,
-      tags: ['quantum', 'computing', 'technology', 'physics']
+      tags: ['quantum', 'computing', 'technology', 'physics'],
+      published: false,
     },
     {
       id: 'PAGE-SAMPLE-002',
@@ -66,7 +67,8 @@ export function createSamplePages(): BuildPage[] {
       content: 'Artificial intelligence has evolved from symbolic AI in the 1950s to modern deep learning. Key milestones include the Dartmouth Conference (1956), expert systems in the 1980s, IBM Deep Blue defeating Kasparov (1997), and the deep learning revolution starting in 2012 with AlexNet.',
       features: { ...defaultFeatures, navigation: true },
       timestamp: now - 86400000 * 2,
-      tags: ['AI', 'history', 'technology', 'machine-learning']
+      tags: ['AI', 'history', 'technology', 'machine-learning'],
+      published: false,
     }
   ]
 }

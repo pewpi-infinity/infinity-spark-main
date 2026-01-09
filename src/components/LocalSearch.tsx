@@ -11,7 +11,8 @@ import {
   Sparkle,
   File,
   Eye,
-  X
+  X,
+  CheckCircle
 } from '@phosphor-icons/react'
 import type { Token, BuildPage } from '@/types'
 import { searchWithRelevance, type SearchFilters, type SearchableItem } from '@/lib/localSearch'
@@ -200,7 +201,7 @@ function SearchResultCard({ item, query, onViewToken, onViewPage }: SearchResult
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {isToken ? (
                 <Sparkle size={20} className="text-accent shrink-0" weight="fill" />
               ) : (
@@ -211,6 +212,12 @@ function SearchResultCard({ item, query, onViewToken, onViewPage }: SearchResult
               </Badge>
               {isToken && (item as Token).promoted && (
                 <Badge variant="outline" className="shrink-0">Promoted</Badge>
+              )}
+              {!isToken && (item as BuildPage).published && (
+                <Badge variant="outline" className="bg-accent/20 text-accent border-accent/30 shrink-0">
+                  <CheckCircle size={12} className="mr-1" />
+                  Published
+                </Badge>
               )}
             </div>
             <CardTitle className="text-xl">

@@ -64,6 +64,7 @@ function App() {
       features,
       timestamp: Date.now(),
       tags: currentResult.tags,
+      published: false,
     }
 
     setTokens((current) =>
@@ -91,6 +92,13 @@ function App() {
   const handleViewPage = (page: BuildPage) => {
     setCurrentPage(page)
     setView('page')
+  }
+
+  const handlePageUpdate = (updatedPage: BuildPage) => {
+    setPages((current) =>
+      (current || []).map((p) => (p.id === updatedPage.id ? updatedPage : p))
+    )
+    setCurrentPage(updatedPage)
   }
 
   const handleViewIndex = () => {
@@ -133,7 +141,11 @@ function App() {
       )}
 
       {view === 'page' && currentPage && (
-        <BuiltPageView page={currentPage} onBack={handleBackToSearch} />
+        <BuiltPageView 
+          page={currentPage} 
+          onBack={handleBackToSearch}
+          onPageUpdate={handlePageUpdate}
+        />
       )}
 
       {view === 'index' && (
