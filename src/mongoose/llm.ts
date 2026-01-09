@@ -1,45 +1,27 @@
 // src/mongoose/llm.ts
-// Direct-import mongoose adapter (GitHub Pages safe)
+// Inline LLM substitute: no fetch, no localhost, no imports.
+// Guarantees search returns something and never fails from infra.
 
-import { runMongoose } from '@/mongoose-os/runMongoose'
-
-export interface MongooseLLMInput {
+export async function mongooseLLM(input: {
   query: string
-  context?: {
-    summary?: string
-    sources?: Array<{ title: string; url: string; snippet: string }>
+  context?: { summary?: string; sources?: any[] }
+  instructions?: string
+  mode?: string
+}): Promise<{ content: string; analysis: string; tags: string[] }> {
+  const q = (input?.query || '').trim()
+  const words = q.split(/\s+/).filter(Boolean)
+
+  const tags = Array.from(new Set(words.map(w => w.toLowerCase()))).slice(0, 6)
+
+  return {
+    content:
+      `Infinity Result\n\n` +
+      `Query: ${q || '(empty)'}\n\n` +
+      `This is the stable inline engine. It proves your UI → logic → page pipeline works on GitHub Pages with zero dependencies.\n\n` +
+      `Next step after stability: swap this function body with real mongoose.os logic (still no network on Pages unless you host a service).`,
+    analysis:
+      `Inline engine active. No localhost, no fetch, no external model calls. ` +
+      `If you still get white pages after this, the issue is build/UI, not the query engine.`,
+    tags
   }
 }
-
-export interface MongooseLLMOutput {
-  content: string
-  analysis?: string
-  tags?: string[]
-}
-
-export async function mongooseLLM(
-  input: MongooseLLMInput
-): Promise<MongooseLLMOutput> {
-  try {
-    const result = await runMongoose({
-      prompt: input.query,
-      context: input.context,
-      mode: 'page_generation',
-      format: 'json'
-    })
-
-    if (!result || !result.content) {
-      throw new Error('mongoose returned invalid result')
-    }
-
-    return {
-      content: result.content,
-      analysis: result.analysis ?? '',
-      tags: Array.isArray(result.tags) ? result.tags : []
-    }
-  } catch (err) {
-    console.error('[mongooseLLM error]', err)
-    throw new Error('Failed to process query with mongoose')
-  }
-}
-
