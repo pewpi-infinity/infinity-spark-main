@@ -7,7 +7,8 @@ export function generateTokenId(): string {
 }
 
 export async function processSearch(query: string): Promise<SearchResult> {
-  const promptText = `You are analyzing a search query to generate meaningful content.
+  try {
+    const promptText = `You are analyzing a search query to generate meaningful content.
 
 Query: ${query}
 
@@ -23,14 +24,22 @@ Return ONLY valid JSON in this exact format:
   "tags": ["tag1", "tag2", "tag3"]
 }`
 
-  const response = await window.spark.llm(promptText, 'gpt-4o', true)
-  const parsed = JSON.parse(response)
-  
-  return {
-    query,
-    content: parsed.content,
-    analysis: parsed.analysis,
-    tags: parsed.tags
+    const response = await spark.llm(promptText, 'gpt-4o', true)
+    const parsed = JSON.parse(response)
+    
+    if (!parsed.content || !parsed.analysis || !parsed.tags) {
+      throw new Error('Invalid response format from LLM')
+    }
+    
+    return {
+      query,
+      content: parsed.content,
+      analysis: parsed.analysis,
+      tags: Array.isArray(parsed.tags) ? parsed.tags : []
+    }
+  } catch (error) {
+    console.error('Search processing error:', error)
+    throw new Error(`Failed to process search: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 

@@ -21,11 +21,11 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Success criteria**: Index page contains zero UI elements beyond title and search input
 
 ### Semantic Search Processing
-- **Functionality**: Takes user input and generates structured knowledge using LLM analysis
+- **Functionality**: Takes user input and generates structured knowledge using LLM analysis with proper error handling
 - **Purpose**: Transforms raw queries into actionable content and context
 - **Trigger**: Search submission
-- **Progression**: Query submitted → LLM analyzes intent and content → generates structured response → renders result page with content
-- **Success criteria**: Every search produces coherent, relevant content based on query semantics
+- **Progression**: Query submitted → LLM prompt constructed → analyzes intent and content → generates structured response → validates response format → renders result page with content → if error occurs, displays specific error message
+- **Success criteria**: Every successful search produces coherent, relevant content based on query semantics, errors are caught and displayed with helpful messages, LLM responses are validated before use
 
 ### Automatic Token Minting
 - **Functionality**: Creates a unique token identifier for every search result
@@ -49,11 +49,11 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Success criteria**: Clear decision point that doesn't force page creation
 
 ### Structure Selection System
-- **Functionality**: Click-based cards presenting five page structure options: Read-only, Knowledge, Business, Tool/App, Multi-page Site
-- **Purpose**: Lets users choose the intent and depth of their page through clear archetypes before diving into features
+- **Functionality**: Click-based cards presenting five concrete page structure archetypes: Read/Research Page, Knowledge Index Page, Business/Landing Page, Tool/App Page, Content Hub/Media Page
+- **Purpose**: Lets users choose the intent and depth of their page through clear, specific archetypes before diving into features
 - **Trigger**: User accepts page promotion
-- **Progression**: Promotion accepted → structure selection modal appears → user clicks one of five cards → structure preset applied → feature selection begins based on structure
-- **Success criteria**: Structure choice is clear and visual, each option explains its purpose, selection feels decisive
+- **Progression**: Promotion accepted → structure selection modal appears with proper scrolling → user clicks one of five cards (Read/Research, Knowledge Index, Business, Tool/App, or Content Hub) → enters custom page name → structure preset applied → feature selection begins based on structure
+- **Success criteria**: Structure choice is clear and visual with concrete descriptions, each option explains its specific purpose (not generic), selection feels decisive, dialog scrolls properly on all screen sizes, page name input is mandatory and visible
 
 ### Choice-Driven Enhancement System
 - **Functionality**: Sequential pop-up decisions for page features (charts, images, audio, video, files, widgets, navigation, monetization)
@@ -70,18 +70,18 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Success criteria**: Generated pages are functional and include only selected features
 
 ### Real Page Publication System
-- **Functionality**: Converts draft pages into live HTML files with permanent URLs through actual file creation under personalized site identities, verifies URL accessibility before declaring success
-- **Purpose**: Transforms ephemeral content into real, shareable web pages with persistent URLs under user's personalized site name (not generic "spark" branding)
+- **Functionality**: Converts draft pages into live HTML files with permanent URLs through actual file creation under personalized site identities, implements mandatory 90-second minimum wait before verification, retries verification up to 3 minutes, provides manual retry mechanism
+- **Purpose**: Transforms ephemeral content into real, shareable web pages with persistent URLs under user's personalized site name with proper build verification
 - **Trigger**: User clicks "Publish Page" button on built page
-- **Progression**: Publish initiated → site config retrieved → HTML file generated with all selected features → metadata JSON created → page data stored in KV with personalized file structure (/{SiteName}/pages/{slug}/index.html) → URL verification attempted → if URL returns 200, marked as "Published" → if URL returns 404, marked as "Awaiting Pages Build" → live URL computed and displayed with site name → user can view/share live page or download files
-- **Success criteria**: Published pages have real URLs with verified accessibility under personalized site paths, show correct status badge ("Published" with green checkmark only when URL verified, "Awaiting Pages Build" when pending), display live link with site name, provide file structure view, allow file downloads, create proper /{SiteName}/pages/{slug}/index.html structure
+- **Progression**: Publish initiated → site config retrieved → HTML file generated with all selected features → metadata JSON created → page data stored in KV with personalized file structure (/{SiteName}/pages/{slug}/index.html) → immediate verification attempt (expected to fail) → if URL returns 200, marked as "Published" immediately → if URL returns 404, marked as "Awaiting Pages Build" → background verification waits 90 seconds → retries verification with 3 attempts → if still failing at 180 seconds, triggers rebuild by touching .gitpages-rebuild → user sees "Check if Live Now" button for manual verification → only when verified does status change to "Published"
+- **Success criteria**: Published pages never show "Published" status until URL returns 200, "Awaiting Pages Build" state shows spinner and clear messaging about 90 second to 3 minute wait time, manual retry button available, proper /{SiteName}/pages/{slug}/index.html structure, live link only shown when verified
 
 ### Site Configuration System
-- **Functionality**: Allows users to configure their personalized site identity including site name, owner name, GitHub username, and repository name
+- **Functionality**: Allows users to configure their personalized site identity including site name, owner name, GitHub username, and repository name, automatically prompts on first use if not configured
 - **Purpose**: Enables personalized publishing where pages live under user's chosen site name (e.g., "Pixie", "Kris") rather than generic "infinity-spark" branding
-- **Trigger**: User clicks gear icon on search page or system detects missing configuration
+- **Trigger**: User clicks gear icon on search page, or automatically opens on first app load if site name is "Untitled"
 - **Progression**: Configuration dialog opens → user enters site name, owner name, GitHub username, repo name → preview URL shown with personalized path → configuration saved to KV → all future pages publish to /{SiteName}/pages/ structure
-- **Success criteria**: Site name is visible in all published URLs and page footers, no "infinity-spark" or "INFINITY" branding visible to end users viewing published pages, configuration persists across sessions, preview path accurately reflects final URL structure
+- **Success criteria**: Site name is visible in all published URLs and page footers, no "infinity-spark" or "INFINITY" branding visible to end users viewing published pages, configuration persists across sessions, preview path accurately reflects final URL structure, auto-prompts new users
 
 ### Secondary Page Index
 - **Functionality**: Maintains searchable catalog of built pages showing draft vs published status
@@ -137,18 +137,25 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Empty Search Query** - Show gentle prompt to enter a query before submission
 - **Very Long Queries** - Accept and process, using LLM to extract core intent
 - **Duplicate/Similar Searches** - Generate new token each time, link to previous results in secondary index
-- **Structure Selection** - Present all five structure options visually, allow hover states, require explicit click to choose
+- **LLM API Failures** - Catch errors gracefully, show specific error message to user, still mint token for query attempt with error note
+- **Invalid LLM Response Format** - Validate JSON structure before parsing, show error if content/analysis/tags missing
+- **Structure Selection Dialog** - Proper overflow-y scrolling on content area, fixed header and footer, works on mobile screens
+- **Structure Selection Without Page Name** - Continue button disabled until both structure and name are provided
 - **Page Build Cancellation** - Allow exit at any point during structure or feature selection, preserve token and basic result
 - **Failed Content Generation** - Gracefully show error, still mint token for query attempt
 - **No Feature Selection** - If user declines all enhancements, create minimal content-only page based on structure
 - **Publication Failure** - Show error toast, keep page in draft state, allow retry
-- **URL Verification Failure** - Mark page as "Awaiting Pages Build" instead of "Published", show informative message about GitHub Pages build time
-- **404 on Published URL** - System automatically checks URL accessibility, only shows "Published" status when URL returns 200
+- **URL Verification Failure** - Mark page as "Awaiting Pages Build" instead of "Published", show informative message about GitHub Pages build time (90 seconds to 3 minutes)
+- **Immediate 404 on Published URL** - System expects this initially, shows "Awaiting Pages Build" with spinner and wait time
+- **404 After 90 Seconds** - System automatically waits and retries verification 3 times with delays
+- **404 After 3 Minutes** - System triggers rebuild by touching .gitpages-rebuild file, continues showing "Awaiting Pages Build"
+- **Manual Verification Retry** - User can click "Check if Live Now" button to manually trigger verification check at any time
+- **False Positive Published Status** - Only show "Published" status when URL actually returns 200, never assume based on time alone
 - **File Structure Display** - Show required /pages/{slug}/index.html path clearly, provide download option for published pages
 - **Unpublished Pages** - Display "⚠️ Draft" badge, show publish button with explanation including file path
 - **Published Pages** - Display "✅ Published" badge with checkmark only after URL verification, show live URL prominently, provide copy and open buttons
-- **Awaiting Build Pages** - Display "⚠️ Awaiting Pages Build" badge, show expected URL, explain 2-3 minute build time, provide retry mechanism
-- **URL Generation** - Compute URLs using GitHub Pages pattern: `https://pewpi-infinity.github.io/infinity-spark/pages/{slug}/` and verify with HEAD request
+- **Awaiting Build Pages** - Display "⚠️ Awaiting Pages Build" badge with spinner, show expected URL, explain 90 second to 3 minute build time, provide manual retry button
+- **URL Generation** - Compute URLs using personalized site structure: `https://{githubUser}.github.io/{repoName}/{siteName}/pages/{slug}/` and verify with HEAD request
 - **GitHub Pages Root Detection** - Automatically detect whether Pages is serving from / or /docs root and adjust file paths accordingly
 - **Search for Existing Page** - Show existing page in results, offer to view or rebuild
 - **Empty Archive Search** - Display message when no tokens or pages exist yet
@@ -158,6 +165,8 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Analytics Display with Zero Values** - Show analytics dashboard even when metrics are zero to establish expectations
 - **Compact Analytics in Lists** - Display abbreviated metrics inline in search results and index views
 - **Share Tracking** - Increment share counter whether user uses native share or clipboard copy fallback
+- **First App Load with Default Config** - Automatically show site configuration dialog if site name is still "Untitled"
+- **Closing Site Config Without Saving** - Allow user to close dialog, but will re-prompt on next session if still unconfigured
 
 ## Design Direction
 

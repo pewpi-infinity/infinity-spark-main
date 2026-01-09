@@ -43,6 +43,7 @@ function generateSlug(title: string): string {
 
 export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps) {
   const [isPublishing, setIsPublishing] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
   const [previewPath, setPreviewPath] = useState('')
 
   useEffect(() => {
@@ -167,6 +168,41 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
     navigator.clipboard.writeText(shareText)
     onPageUpdate(trackPageShare(page))
     toast.success('Page info copied to clipboard')
+  }
+
+  const handleRetryVerification = async () => {
+    if (!page.url) return
+    
+    setIsVerifying(true)
+    toast.loading('Checking page status...')
+    
+    try {
+      const response = await fetch(page.url, { 
+        method: 'HEAD',
+        cache: 'no-cache'
+      })
+      
+      toast.dismiss()
+      
+      if (response.ok) {
+        const updatedPage: BuildPage = {
+          ...page,
+          published: true,
+          publishStatus: 'published'
+        }
+        onPageUpdate(updatedPage)
+        toast.success('Page is now live!')
+      } else {
+        toast.info('Page is still building', {
+          description: 'Please wait a bit longer and try again'
+        })
+      }
+    } catch (error) {
+      toast.dismiss()
+      toast.error('Unable to verify page status')
+    } finally {
+      setIsVerifying(false)
+    }
   }
 
   return (
@@ -348,7 +384,7 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     <h3 className="text-xl font-semibold">Awaiting GitHub Pages Build</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Your page has been submitted for publishing. GitHub Pages is currently building your site. This typically takes 2-3 minutes.
+                    Your page has been submitted for publishing. GitHub Pages is currently building your site. This typically takes 90 seconds to 3 minutes.
                   </p>
                   <div className="bg-card/50 rounded-lg p-4 font-mono text-sm break-all">
                     {page.url}
@@ -356,6 +392,14 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                   <p className="text-xs text-muted-foreground">
                     The page will be automatically marked as published once the build completes and the URL is verified.
                   </p>
+                  <Button
+                    onClick={handleRetryVerification}
+                    disabled={isVerifying}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {isVerifying ? 'Checking...' : 'Check if Live Now'}
+                  </Button>
                 </div>
               </CardContent>
             </Card>

@@ -85,13 +85,13 @@ function getStructurePresets(structure?: PageStructure): Partial<PageFeatures> {
     case 'blank':
       return {}
     case 'knowledge':
-      return { charts: true, images: true }
+      return { charts: true, images: true, navigation: true }
     case 'business':
-      return { images: true, navigation: true, monetization: true }
+      return { images: true, video: true, navigation: true, monetization: true }
     case 'tool':
-      return { widgets: true, files: true }
+      return { widgets: true, files: true, navigation: true }
     case 'multipage':
-      return { navigation: true, images: true, files: true }
+      return { navigation: true, images: true, video: true, audio: true, files: true }
     default:
       return {}
   }

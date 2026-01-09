@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { SearchIndex } from '@/components/SearchIndex'
 import { ResultPage } from '@/components/ResultPage'
@@ -33,9 +33,16 @@ function App() {
   const [pages, setPages] = useKV<BuildPage[]>('infinity-pages', [])
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
+  useEffect(() => {
+    if (siteConfig && siteConfig.siteName === 'Untitled') {
+      const timer = setTimeout(() => setShowSiteConfig(true), 500)
+      return () => clearTimeout(timer)
+    }
+  }, [siteConfig])
+
   const handleSearch = async (query: string) => {
     setIsProcessing(true)
-    toast.loading('Processing your search...')
+    const toastId = toast.loading('Processing your search...')
 
     try {
       const result = await processSearch(query)
@@ -49,12 +56,13 @@ function App() {
       setCurrentToken(token)
       setView('result')
 
-      toast.dismiss()
+      toast.dismiss(toastId)
       toast.success('Token minted successfully!')
     } catch (error) {
-      toast.dismiss()
-      toast.error('Failed to process search')
-      console.error(error)
+      toast.dismiss(toastId)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process search'
+      toast.error(errorMessage)
+      console.error('Search error:', error)
     } finally {
       setIsProcessing(false)
     }

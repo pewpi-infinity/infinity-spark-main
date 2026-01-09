@@ -339,12 +339,45 @@ function generatePageMetadata(page: BuildPage): string {
   }, null, 2)
 }
 
-async function verifyPageUrl(url: string): Promise<boolean> {
-  try {
-    const response = await fetch(url, { method: 'HEAD' })
-    return response.ok
-  } catch {
-    return false
+async function verifyPageUrl(url: string, maxRetries = 3): Promise<boolean> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url, { 
+        method: 'HEAD',
+        cache: 'no-cache'
+      })
+      if (response.ok) return true
+      
+      if (i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      }
+    } catch (error) {
+      if (i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      }
+    }
+  }
+  return false
+}
+
+async function waitAndVerifyPage(url: string, pageId: string): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, 90000))
+  
+  const isVerified = await verifyPageUrl(url)
+  
+  if (isVerified) {
+    const pageData = await spark.kv.get<PageData>(`published-page-${pageId}`)
+    if (pageData) {
+      pageData.verified = true
+      await spark.kv.set(`published-page-${pageId}`, pageData)
+    }
+  } else {
+    await new Promise(resolve => setTimeout(resolve, 90000))
+    
+    const stillNotVerified = !(await verifyPageUrl(url))
+    if (stillNotVerified) {
+      await spark.kv.set('.gitpages-rebuild', Date.now())
+    }
   }
 }
 
@@ -390,11 +423,13 @@ export async function publishPage(page: BuildPage): Promise<PublishResult> {
     await spark.kv.set(`published-page-${page.id}`, pageData)
     await spark.kv.set(`page-file-structure-${page.id}`, fileStructure)
 
-    const isVerified = await verifyPageUrl(pageUrl)
+    const isVerified = await verifyPageUrl(pageUrl, 1)
     
     if (isVerified) {
       pageData.verified = true
       await spark.kv.set(`published-page-${page.id}`, pageData)
+    } else {
+      waitAndVerifyPage(pageUrl, page.id)
     }
 
     const registry = await spark.kv.get<PageRegistry>('page-registry') || { pages: [] }
@@ -418,15 +453,6 @@ export async function publishPage(page: BuildPage): Promise<PublishResult> {
     }
 
     await spark.kv.set('page-registry', registry)
-
-    if (!isVerified) {
-      setTimeout(async () => {
-        const stillNotVerified = !(await verifyPageUrl(pageUrl))
-        if (stillNotVerified) {
-          await spark.kv.set('.gitpages-rebuild', Date.now())
-        }
-      }, 120000)
-    }
 
     return {
       success: true,
