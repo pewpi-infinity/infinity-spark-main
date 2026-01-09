@@ -45,14 +45,21 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Functionality**: Presents choice to convert ephemeral result into permanent page
 - **Purpose**: Gates complexity behind user intent - only build what users want
 - **Trigger**: User reviews result content
-- **Progression**: Result displayed → "Build this into a page?" prompt shown → user accepts/declines → if accepted, shows progressive options
+- **Progression**: Result displayed → "Build this into a page?" prompt shown → user accepts/declines → if accepted, shows structure selection → then feature selection
 - **Success criteria**: Clear decision point that doesn't force page creation
 
-### Choice-Driven Enhancement System
-- **Functionality**: Sequential pop-up decisions for page features (charts, images, audio, video, navigation, monetization)
-- **Purpose**: Lets users add only the features they need through explicit choices
+### Structure Selection System
+- **Functionality**: Click-based cards presenting five page structure options: Read-only, Knowledge, Business, Tool/App, Multi-page Site
+- **Purpose**: Lets users choose the intent and depth of their page through clear archetypes before diving into features
 - **Trigger**: User accepts page promotion
-- **Progression**: Promotion accepted → series of feature choice dialogs → each "yes" adds capability → "no" moves to next option → build completes with selected features
+- **Progression**: Promotion accepted → structure selection modal appears → user clicks one of five cards → structure preset applied → feature selection begins based on structure
+- **Success criteria**: Structure choice is clear and visual, each option explains its purpose, selection feels decisive
+
+### Choice-Driven Enhancement System
+- **Functionality**: Sequential pop-up decisions for page features (charts, images, audio, video, files, widgets, navigation, monetization)
+- **Purpose**: Lets users add only the features they need through explicit choices
+- **Trigger**: User selects page structure
+- **Progression**: Structure selected → series of feature choice dialogs → each "yes" adds capability → "no" moves to next option → build completes with selected features
 - **Success criteria**: Pages contain only explicitly requested features, no bloat
 
 ### Intelligent Files Builder
@@ -63,11 +70,11 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Success criteria**: Generated pages are functional and include only selected features
 
 ### Real Page Publication System
-- **Functionality**: Converts draft pages into live HTML files with permanent URLs through actual file creation and registry
-- **Purpose**: Transforms ephemeral content into real, shareable web pages with persistent URLs
+- **Functionality**: Converts draft pages into live HTML files with permanent URLs through actual file creation and registry, verifies URL accessibility before declaring success
+- **Purpose**: Transforms ephemeral content into real, shareable web pages with persistent URLs that actually work
 - **Trigger**: User clicks "Publish Page" button on built page
-- **Progression**: Publish initiated → HTML file generated with all selected features → metadata JSON created → page data stored in KV → page registered in secondary index → live URL computed and displayed → user can view/share live page
-- **Success criteria**: Published pages have real URLs, show "Published" status with green badge, display live link, and can be opened in new tab
+- **Progression**: Publish initiated → HTML file generated with all selected features → metadata JSON created → page data stored in KV with file structure → URL verification attempted → if URL returns 200, marked as "Published" → if URL returns 404, marked as "Awaiting Pages Build" → live URL computed and displayed → user can view/share live page or download files
+- **Success criteria**: Published pages have real URLs with verified accessibility, show correct status badge ("Published" with green checkmark only when URL verified, "Awaiting Pages Build" when pending), display live link, provide file structure view, allow file downloads, create proper /pages/{slug}/index.html structure
 
 ### Secondary Page Index
 - **Functionality**: Maintains searchable catalog of built pages showing draft vs published status
@@ -123,13 +130,19 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Empty Search Query** - Show gentle prompt to enter a query before submission
 - **Very Long Queries** - Accept and process, using LLM to extract core intent
 - **Duplicate/Similar Searches** - Generate new token each time, link to previous results in secondary index
-- **Page Build Cancellation** - Allow exit at any point during feature selection, preserve token and basic result
+- **Structure Selection** - Present all five structure options visually, allow hover states, require explicit click to choose
+- **Page Build Cancellation** - Allow exit at any point during structure or feature selection, preserve token and basic result
 - **Failed Content Generation** - Gracefully show error, still mint token for query attempt
-- **No Feature Selection** - If user declines all enhancements, create minimal content-only page
+- **No Feature Selection** - If user declines all enhancements, create minimal content-only page based on structure
 - **Publication Failure** - Show error toast, keep page in draft state, allow retry
-- **Unpublished Pages** - Display "⚠️ Draft" badge, show publish button with explanation
-- **Published Pages** - Display "✅ Published" badge with checkmark, show live URL prominently, provide copy and open buttons
-- **URL Generation** - Compute URLs using GitHub Pages pattern: `https://pewpi-infinity.github.io/infinity-spark/pages/{slug}/`
+- **URL Verification Failure** - Mark page as "Awaiting Pages Build" instead of "Published", show informative message about GitHub Pages build time
+- **404 on Published URL** - System automatically checks URL accessibility, only shows "Published" status when URL returns 200
+- **File Structure Display** - Show required /pages/{slug}/index.html path clearly, provide download option for published pages
+- **Unpublished Pages** - Display "⚠️ Draft" badge, show publish button with explanation including file path
+- **Published Pages** - Display "✅ Published" badge with checkmark only after URL verification, show live URL prominently, provide copy and open buttons
+- **Awaiting Build Pages** - Display "⚠️ Awaiting Pages Build" badge, show expected URL, explain 2-3 minute build time, provide retry mechanism
+- **URL Generation** - Compute URLs using GitHub Pages pattern: `https://pewpi-infinity.github.io/infinity-spark/pages/{slug}/` and verify with HEAD request
+- **GitHub Pages Root Detection** - Automatically detect whether Pages is serving from / or /docs root and adjust file paths accordingly
 - **Search for Existing Page** - Show existing page in results, offer to view or rebuild
 - **Empty Archive Search** - Display message when no tokens or pages exist yet
 - **No Archive Search Results** - Show helpful message when query matches nothing, suggest adjusting filters

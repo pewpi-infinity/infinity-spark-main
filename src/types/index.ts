@@ -16,6 +16,8 @@ export interface Token {
   analytics?: TokenAnalytics
 }
 
+export type PageStructure = 'blank' | 'knowledge' | 'business' | 'tool' | 'multipage'
+
 export interface PageFeatures {
   charts: boolean
   images: boolean
@@ -40,6 +42,7 @@ export interface BuildPage {
   tokenId: string
   title: string
   content: string
+  structure?: PageStructure
   features: PageFeatures
   timestamp: number
   tags: string[]
@@ -48,6 +51,7 @@ export interface BuildPage {
   slug?: string
   publishedAt?: number
   analytics?: PageAnalytics
+  publishStatus?: 'draft' | 'published' | 'awaiting-build'
 }
 
 export interface SearchResult {

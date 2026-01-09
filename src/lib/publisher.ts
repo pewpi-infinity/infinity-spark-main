@@ -4,6 +4,7 @@ interface PublishResult {
   success: boolean
   url?: string
   error?: string
+  status?: 'published' | 'awaiting-build'
 }
 
 interface PageRegistry {
@@ -15,6 +16,15 @@ interface PageRegistry {
     features: string[]
     createdAt: number
   }[]
+}
+
+interface PageData {
+  html: string
+  metadata: string
+  slug: string
+  url: string
+  timestamp: number
+  verified: boolean
 }
 
 function generateSlug(title: string): string {
@@ -327,26 +337,64 @@ function generatePageMetadata(page: BuildPage): string {
   }, null, 2)
 }
 
+async function verifyPageUrl(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, { method: 'HEAD' })
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+async function detectGitHubPagesRoot(): Promise<'/' | '/docs'> {
+  try {
+    const docsTest = await fetch('/docs/index.html', { method: 'HEAD' })
+    if (docsTest.ok) return '/docs'
+  } catch {
+  }
+  return '/'
+}
+
 export async function publishPage(page: BuildPage): Promise<PublishResult> {
   try {
     const slug = generateSlug(page.title)
     const html = generatePageHTML({ ...page, slug })
     const metadata = generatePageMetadata({ ...page, slug })
 
+    const pagesRoot = await detectGitHubPagesRoot()
+    
     const githubUser = 'pewpi-infinity'
     const repoName = 'infinity-spark'
     const baseUrl = `https://${githubUser}.github.io/${repoName}`
     const pageUrl = `${baseUrl}/pages/${slug}/`
 
-    const pageData = {
+    const pageData: PageData = {
       html,
       metadata,
       slug,
       url: pageUrl,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      verified: false
+    }
+
+    const fileStructure = {
+      root: pagesRoot === '/docs' ? 'docs' : '',
+      path: `pages/${slug}/index.html`,
+      metadata: `pages/${slug}/page.json`,
+      fullPath: pagesRoot === '/docs' 
+        ? `/docs/pages/${slug}/index.html`
+        : `/pages/${slug}/index.html`
     }
 
     await spark.kv.set(`published-page-${page.id}`, pageData)
+    await spark.kv.set(`page-file-structure-${page.id}`, fileStructure)
+
+    const isVerified = await verifyPageUrl(pageUrl)
+    
+    if (isVerified) {
+      pageData.verified = true
+      await spark.kv.set(`published-page-${page.id}`, pageData)
+    }
 
     const registry = await spark.kv.get<PageRegistry>('page-registry') || { pages: [] }
     
@@ -370,9 +418,19 @@ export async function publishPage(page: BuildPage): Promise<PublishResult> {
 
     await spark.kv.set('page-registry', registry)
 
+    if (!isVerified) {
+      setTimeout(async () => {
+        const stillNotVerified = !(await verifyPageUrl(pageUrl))
+        if (stillNotVerified) {
+          await spark.kv.set('.gitpages-rebuild', Date.now())
+        }
+      }, 120000)
+    }
+
     return {
       success: true,
-      url: pageUrl
+      url: pageUrl,
+      status: isVerified ? 'published' : 'awaiting-build'
     }
   } catch (error) {
     console.error('Publication error:', error)
@@ -389,4 +447,42 @@ export async function getPublishedPage(pageId: string) {
 
 export async function getPageRegistry(): Promise<PageRegistry> {
   return await spark.kv.get<PageRegistry>('page-registry') || { pages: [] }
+}
+
+export async function downloadPageFiles(pageId: string) {
+  const pageData = await spark.kv.get<PageData>(`published-page-${pageId}`)
+  if (!pageData) {
+    throw new Error('Page not found')
+  }
+
+  const files = [
+    {
+      name: 'index.html',
+      content: pageData.html,
+      path: `pages/${pageData.slug}/index.html`
+    },
+    {
+      name: 'page.json',
+      content: pageData.metadata,
+      path: `pages/${pageData.slug}/page.json`
+    }
+  ]
+
+  return files
+}
+
+export async function exportAllPages() {
+  const registry = await getPageRegistry()
+  const allFiles: { path: string; content: string }[] = []
+
+  for (const page of registry.pages) {
+    try {
+      const files = await downloadPageFiles(page.id)
+      allFiles.push(...files.map(f => ({ path: f.path, content: f.content })))
+    } catch (e) {
+      console.error(`Failed to export page ${page.id}:`, e)
+    }
+  }
+
+  return allFiles
 }

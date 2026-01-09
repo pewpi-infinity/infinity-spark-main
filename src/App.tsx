@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { SearchIndex } from '@/components/SearchIndex'
 import { ResultPage } from '@/components/ResultPage'
+import { StructureSelection, PageStructure } from '@/components/StructureSelection'
 import { FeatureSelection } from '@/components/FeatureSelection'
 import { BuiltPageView } from '@/components/BuiltPageView'
 import { PageIndex } from '@/components/PageIndex'
@@ -20,7 +21,9 @@ function App() {
   const [currentToken, setCurrentToken] = useState<Token | null>(null)
   const [currentPage, setCurrentPage] = useState<BuildPage | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [showStructureSelection, setShowStructureSelection] = useState(false)
   const [showFeatureSelection, setShowFeatureSelection] = useState(false)
+  const [selectedStructure, setSelectedStructure] = useState<PageStructure | null>(null)
 
   const [tokens, setTokens] = useKV<Token[]>('infinity-tokens', [])
   const [pages, setPages] = useKV<BuildPage[]>('infinity-pages', [])
@@ -53,21 +56,29 @@ function App() {
   }
 
   const handlePromote = () => {
+    setShowStructureSelection(true)
+  }
+
+  const handleStructureSelection = (structure: PageStructure) => {
+    setSelectedStructure(structure)
+    setShowStructureSelection(false)
     setShowFeatureSelection(true)
   }
 
   const handleFeatureSelection = (features: PageFeatures) => {
-    if (!currentResult || !currentToken) return
+    if (!currentResult || !currentToken || !selectedStructure) return
 
     const page: BuildPage = {
       id: `PAGE-${Date.now().toString(36).toUpperCase()}`,
       tokenId: currentToken.id,
       title: currentResult.query,
       content: currentResult.content,
+      structure: selectedStructure,
       features,
       timestamp: Date.now(),
       tags: currentResult.tags,
       published: false,
+      publishStatus: 'draft',
     }
 
     const updatedToken = trackTokenPromotion(currentToken)
@@ -82,6 +93,7 @@ function App() {
 
     setCurrentPage(page)
     setShowFeatureSelection(false)
+    setSelectedStructure(null)
     setView('page')
 
     toast.success('Page built successfully!')
@@ -189,8 +201,14 @@ function App() {
         />
       )}
 
+      <StructureSelection
+        open={showStructureSelection}
+        onComplete={handleStructureSelection}
+      />
+
       <FeatureSelection
         open={showFeatureSelection}
+        structure={selectedStructure || undefined}
         onComplete={handleFeatureSelection}
       />
     </>

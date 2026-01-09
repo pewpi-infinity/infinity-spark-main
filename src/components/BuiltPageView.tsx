@@ -22,6 +22,7 @@ import { toast } from 'sonner'
 import { publishPage } from '@/lib/publisher'
 import { trackPageView, trackPageShare, initializePageAnalytics } from '@/lib/analytics'
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
+import { PageFilesView } from '@/components/PageFilesView'
 import type { BuildPage } from '@/types'
 
 interface BuiltPageViewProps {
@@ -68,9 +69,12 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
       const result = await publishPage(page)
 
       if (result.success && result.url) {
+        const publishStatus = result.status === 'published' ? 'published' : 'awaiting-build'
+        
         const updatedPage: BuildPage = {
           ...page,
-          published: true,
+          published: result.status === 'published',
+          publishStatus,
           url: result.url,
           publishedAt: Date.now(),
         }
@@ -78,7 +82,14 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
         onPageUpdate(updatedPage)
 
         toast.dismiss()
-        toast.success('Page published successfully!')
+        
+        if (result.status === 'published') {
+          toast.success('Page published successfully!')
+        } else {
+          toast.success('Page submitted for publishing', {
+            description: 'Awaiting GitHub Pages build (may take 2-3 minutes)'
+          })
+        }
       } else {
         toast.dismiss()
         toast.error(result.error || 'Failed to publish page')
@@ -172,23 +183,29 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                   >
                     <ShareNetwork size={20} />
                   </Button>
-                  <Badge 
-                    className={
-                      page.published 
-                        ? "bg-accent/20 text-accent border-accent/30" 
-                        : "bg-muted/20 text-muted-foreground border-muted"
-                    }
-                    variant="outline"
-                  >
-                    {page.published ? (
-                      <>
-                        <CheckCircle className="mr-1" size={16} />
-                        Published
-                      </>
-                    ) : (
-                      <>⚠️ Draft</>
-                    )}
-                  </Badge>
+                  {page.publishStatus === 'awaiting-build' ? (
+                    <Badge 
+                      className="bg-muted/20 text-muted-foreground border-muted"
+                      variant="outline"
+                    >
+                      ⚠️ Awaiting Pages Build
+                    </Badge>
+                  ) : page.published ? (
+                    <Badge 
+                      className="bg-accent/20 text-accent border-accent/30"
+                      variant="outline"
+                    >
+                      <CheckCircle className="mr-1" size={16} />
+                      Published
+                    </Badge>
+                  ) : (
+                    <Badge 
+                      className="bg-muted/20 text-muted-foreground border-muted"
+                      variant="outline"
+                    >
+                      ⚠️ Draft
+                    </Badge>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -271,13 +288,17 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
             <AnalyticsDashboard analytics={page.analytics} type="page" />
           )}
 
-          {!page.published && (
+          {page.published && (
+            <PageFilesView page={page} />
+          )}
+
+          {!page.published && page.publishStatus !== 'awaiting-build' && (
             <Card className="bg-accent/10 border-accent/30">
               <CardContent className="pt-6">
                 <div className="text-center space-y-4">
                   <h3 className="text-xl font-semibold">Ready to Publish?</h3>
                   <p className="text-muted-foreground">
-                    Publishing will create a permanent HTML file with a live URL that you can share.
+                    Publishing will create a permanent HTML file at /pages/{page.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')}/index.html with a live URL that you can share.
                   </p>
                   <Button
                     onClick={handlePublish}
@@ -287,6 +308,28 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     <Rocket className="mr-2" size={20} />
                     {isPublishing ? 'Publishing...' : 'Publish Page'}
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {page.publishStatus === 'awaiting-build' && page.url && (
+            <Card className="bg-muted/20 border-muted">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="animate-spin h-5 w-5 border-2 border-muted-foreground border-t-transparent rounded-full"></div>
+                    <h3 className="text-xl font-semibold">Awaiting GitHub Pages Build</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Your page has been submitted for publishing. GitHub Pages is currently building your site. This typically takes 2-3 minutes.
+                  </p>
+                  <div className="bg-card/50 rounded-lg p-4 font-mono text-sm break-all">
+                    {page.url}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    The page will be automatically marked as published once the build completes and the URL is verified.
+                  </p>
                 </div>
               </CardContent>
             </Card>

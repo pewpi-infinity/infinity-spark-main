@@ -20,7 +20,7 @@ import {
   Check,
   X,
 } from '@phosphor-icons/react'
-import type { PageFeatures } from '@/types'
+import type { PageFeatures, PageStructure } from '@/types'
 
 interface FeatureOption {
   key: keyof PageFeatures
@@ -80,22 +80,42 @@ const featureOptions: FeatureOption[] = [
   },
 ]
 
+function getStructurePresets(structure?: PageStructure): Partial<PageFeatures> {
+  switch (structure) {
+    case 'blank':
+      return {}
+    case 'knowledge':
+      return { charts: true, images: true }
+    case 'business':
+      return { images: true, navigation: true, monetization: true }
+    case 'tool':
+      return { widgets: true, files: true }
+    case 'multipage':
+      return { navigation: true, images: true, files: true }
+    default:
+      return {}
+  }
+}
+
 interface FeatureSelectionProps {
   open: boolean
+  structure?: PageStructure
   onComplete: (features: PageFeatures) => void
 }
 
-export function FeatureSelection({ open, onComplete }: FeatureSelectionProps) {
+export function FeatureSelection({ open, structure, onComplete }: FeatureSelectionProps) {
+  const presets = getStructurePresets(structure)
+  
   const [currentIndex, setCurrentIndex] = useState(0)
   const [features, setFeatures] = useState<PageFeatures>({
-    charts: false,
-    images: false,
-    audio: false,
-    video: false,
-    files: false,
-    widgets: false,
-    navigation: false,
-    monetization: false,
+    charts: presets.charts || false,
+    images: presets.images || false,
+    audio: presets.audio || false,
+    video: presets.video || false,
+    files: presets.files || false,
+    widgets: presets.widgets || false,
+    navigation: presets.navigation || false,
+    monetization: presets.monetization || false,
   })
 
   const currentFeature = featureOptions[currentIndex]
@@ -114,14 +134,14 @@ export function FeatureSelection({ open, onComplete }: FeatureSelectionProps) {
       onComplete(updatedFeatures)
       setCurrentIndex(0)
       setFeatures({
-        charts: false,
-        images: false,
-        audio: false,
-        video: false,
-        files: false,
-        widgets: false,
-        navigation: false,
-        monetization: false,
+        charts: presets.charts || false,
+        images: presets.images || false,
+        audio: presets.audio || false,
+        video: presets.video || false,
+        files: presets.files || false,
+        widgets: presets.widgets || false,
+        navigation: presets.navigation || false,
+        monetization: presets.monetization || false,
       })
     }
   }
