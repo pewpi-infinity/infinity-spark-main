@@ -8,7 +8,7 @@ export function generateTokenId(): string {
 
 export async function processSearch(query: string): Promise<SearchResult> {
   try {
-    const promptText = `You are analyzing a search query to generate meaningful content.
+    const prompt = `You are analyzing a search query to generate meaningful content.
 
 Query: ${query}
 
@@ -24,7 +24,7 @@ Return ONLY valid JSON in this exact format:
   "tags": ["tag1", "tag2", "tag3"]
 }`
 
-    const response = await spark.llm(promptText, 'gpt-4o', true)
+    const response = await spark.llm(prompt, 'gpt-4o', true)
     const parsed = JSON.parse(response)
     
     if (!parsed.content || !parsed.analysis || !parsed.tags) {

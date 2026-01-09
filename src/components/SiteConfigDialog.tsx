@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,15 @@ export function SiteConfigDialog({ open, config, onClose, onSave }: SiteConfigDi
   const [githubUser, setGithubUser] = useState(config.githubUser)
   const [repoName, setRepoName] = useState(config.repoName)
   const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setSiteName(config.siteName)
+      setOwnerName(config.ownerName)
+      setGithubUser(config.githubUser)
+      setRepoName(config.repoName)
+    }
+  }, [open, config])
 
   const handleSave = async () => {
     if (!siteName.trim() || !ownerName.trim() || !githubUser.trim() || !repoName.trim()) {

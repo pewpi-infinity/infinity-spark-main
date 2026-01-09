@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -66,6 +66,12 @@ export function StructureSelection({ open, defaultTitle = '', onComplete, onCanc
   const [selectedStructure, setSelectedStructure] = useState<PageStructure | null>(null)
   const [customTitle, setCustomTitle] = useState(defaultTitle)
 
+  useEffect(() => {
+    if (open) {
+      setCustomTitle(defaultTitle)
+    }
+  }, [open, defaultTitle])
+
   const handleSelect = (structure: PageStructure) => {
     setSelectedStructure(structure)
   }
@@ -88,7 +94,7 @@ export function StructureSelection({ open, defaultTitle = '', onComplete, onCanc
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden bg-card/95 backdrop-blur-lg p-0 flex flex-col">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden bg-card/95 backdrop-blur-lg p-0 flex flex-col gap-0">
         <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50">
           <DialogTitle className="text-2xl">What do you want this to become?</DialogTitle>
           <DialogDescription>
@@ -96,8 +102,8 @@ export function StructureSelection({ open, defaultTitle = '', onComplete, onCanc
           </DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-y-auto flex-1 px-6 py-6">
-          <div className="space-y-6">
+        <div className="overflow-y-auto flex-1 px-6 py-6 overscroll-contain">
+          <div className="space-y-6 pb-2">
             <div className="space-y-2">
               <Label htmlFor="page-title" className="text-base">Page Name</Label>
               <Input
@@ -106,6 +112,7 @@ export function StructureSelection({ open, defaultTitle = '', onComplete, onCanc
                 onChange={(e) => setCustomTitle(e.target.value)}
                 placeholder="Enter a custom name for your page..."
                 className="h-12 text-base"
+                autoFocus
               />
             </div>
 
