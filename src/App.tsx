@@ -48,26 +48,97 @@ function App() {
     }
   }, [siteConfig])
 
-  /* ---- handlers unchanged ---- */
+  /* ============================
+     RESTORED FUNCTION (THE BUG)
+     ============================ */
+  const handleSearch = async (query: string) => {
+    setIsProcessing(true)
+    const toastId = toast.loading('Processing your search...')
 
-  const pageCount = pages?.length || 0
-  const tokenCount = tokens?.length || 0
+    try {
+      const result = await processSearch(query)
+      const token = createToken(query, result.content)
+      token.analytics = initializeTokenAnalytics()
+
+      setTokens((current) => [token, ...(current || [])])
+      setCurrentResult(result)
+      setCurrentToken(token)
+      setView('result')
+
+      toast.dismiss(toastId)
+      toast.success('Token minted successfully!')
+    } catch (error) {
+      toast.dismiss(toastId)
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to process search'
+      )
+      console.error(error)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handlePromote = () => setShowStructureSelection(true)
+  const handleBackToSearch = () => {
+    setView('search')
+    setCurrentResult(null)
+    setCurrentToken(null)
+    setCurrentPage(null)
+  }
+
+  const handleStructureSelection = (structure: PageStructure, title: string) => {
+    setSelectedStructure(structure)
+    setCustomPageTitle(title)
+    setShowStructureSelection(false)
+    setShowFeatureSelection(true)
+  }
+
+  const handleFeatureSelection = (features: PageFeatures) => {
+    if (!currentResult || !currentToken || !selectedStructure) return
+
+    const page: BuildPage = {
+      id: `PAGE-${Date.now().toString(36).toUpperCase()}`,
+      tokenId: currentToken.id,
+      title: customPageTitle || currentResult.query,
+      content: currentResult.content,
+      structure: selectedStructure,
+      features,
+      timestamp: Date.now(),
+      tags: currentResult.tags,
+      published: false,
+      publishStatus: 'draft',
+    }
+
+    const updatedToken = trackTokenPromotion(currentToken)
+
+    setTokens((current) =>
+      (current || []).map((t) =>
+        t.id === currentToken.id
+          ? { ...updatedToken, promoted: true, pageId: page.id }
+          : t
+      )
+    )
+
+    setPages((current) => [page, ...(current || [])])
+    setCurrentPage(page)
+    setShowFeatureSelection(false)
+    setView('page')
+  }
 
   return (
     <>
       <Toaster position="top-center" theme="dark" />
 
-      {/* 🧠 MONGOOSE / BRAIN OUTPUT */}
-      <BrainResult /> {/* ← ADDED */}
+      <BrainResult />
 
       {view === 'search' && (
         <SearchIndex
           onSearch={handleSearch}
-          onViewArchives={handleViewLocalSearch}
-          onViewPages={handleViewIndex}
+          onViewArchives={() => setView('localSearch')}
+          onViewPages={() => setView('index')}
           onOpenSettings={() => setShowSiteConfig(true)}
-          hasTokens={tokenCount > 0}
-          hasPages={pageCount > 0}
+          hasTokens={tokens.length > 0}
+          hasPages={pages.length > 0}
         />
       )}
 
@@ -84,25 +155,38 @@ function App() {
         <BuiltPageView
           page={currentPage}
           onBack={handleBackToSearch}
-          onPageUpdate={handlePageUpdate}
+          onPageUpdate={(p) =>
+            setPages((current) =>
+              (current || []).map((x) => (x.id === p.id ? p : x))
+            )
+          }
         />
       )}
 
       {view === 'index' && (
         <PageIndex
-          pages={pages || []}
-          onViewPage={handleViewPage}
+          pages={pages}
+          onViewPage={(p) => {
+            setCurrentPage(p)
+            setView('page')
+          }}
           onBack={handleBackToSearch}
-          onSearchArchives={handleViewLocalSearch}
+          onSearchArchives={() => setView('localSearch')}
         />
       )}
 
       {view === 'localSearch' && (
         <LocalSearch
-          tokens={tokens || []}
-          pages={pages || []}
-          onViewToken={handleViewToken}
-          onViewPage={handleViewPage}
+          tokens={tokens}
+          pages={pages}
+          onViewToken={(t) => {
+            setCurrentToken(t)
+            setView('tokenView')
+          }}
+          onViewPage={(p) => {
+            setCurrentPage(p)
+            setView('page')
+          }}
           onBack={handleBackToSearch}
         />
       )}
@@ -110,10 +194,17 @@ function App() {
       {view === 'tokenView' && currentToken && (
         <TokenView
           token={currentToken}
-          pages={pages || []}
+          pages={pages}
           onBack={() => setView('localSearch')}
-          onViewPage={handleViewPage}
-          onTokenUpdate={handleTokenUpdate}
+          onViewPage={(p) => {
+            setCurrentPage(p)
+            setView('page')
+          }}
+          onTokenUpdate={(t) =>
+            setTokens((current) =>
+              (current || []).map((x) => (x.id === t.id ? t : x))
+            )
+          }
         />
       )}
 
@@ -121,14 +212,14 @@ function App() {
         open={showStructureSelection}
         defaultTitle={currentResult?.query}
         onComplete={handleStructureSelection}
-        onCancel={handleStructureCancel}
+        onCancel={() => setShowStructureSelection(false)}
       />
 
       <FeatureSelection
         open={showFeatureSelection}
         structure={selectedStructure || undefined}
         onComplete={handleFeatureSelection}
-        onCancel={handleFeatureCancel}
+        onCancel={() => setShowFeatureSelection(false)}
       />
 
       {siteConfig && (
