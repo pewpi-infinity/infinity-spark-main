@@ -6,3 +6,5 @@ export async function LocalSearch(query: string) {
   kv.set(`page:${result.token.id}`, result)
   return result
 }
+
+export default LocalSearch
