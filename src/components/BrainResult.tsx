@@ -1,54 +1,41 @@
-// src/components/BrainResult.tsx
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
 type BrainData = {
-  query: string
-  summary: string
-  insights: string[]
-  timestamp: string
-}
+  engine?: string;
+  status?: string;
+  payload?: any;
+};
 
 export default function BrainResult() {
-  const [data, setData] = useState<BrainData | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [brain, setBrain] = useState<BrainData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/generated/hydrogen_helium_atomic_coherence.json')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load brain output')
-        return res.json()
+    fetch("/brain/brain.json", { cache: "no-store" })
+      .then((r) => {
+        if (!r.ok) throw new Error("brain.json not found");
+        return r.json();
       })
-      .then(setData)
-      .catch(err => setError(err.message))
-  }, [])
+      .then((data) => {
+        setBrain(data);
+      })
+      .catch((e) => {
+        setError(e.message);
+      });
+  }, []);
 
-  if (error) return <div>Error: {error}</div>
-  if (!data) return <div>Loading brain output…</div>
+  if (error) {
+    return <div>🧠 Brain load failed</div>;
+  }
+
+  if (!brain) {
+    return <div>🧠 Loading brain…</div>;
+  }
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>{data.query}</h2>
-      <p>{data.summary}</p>
-      <ul>
-        {data.insights.map((i, idx) => (
-          <li key={idx}>{i}</li>
-        ))}
-      </ul>
-      <small>{new Date(data.timestamp).toLocaleString()}</small>
+    <div>
+      <h3>🧠 Infinity Brain</h3>
+      <pre>{JSON.stringify(brain, null, 2)}</pre>
     </div>
-  )
-    }
-                 
-
-// 🧱 c13b0 fallback loader (GitHub Pages static)
-(async () => {
-  try {
-    const r = await fetch("./brain/brain.json", { cache: "no-store" });
-    if (!r.ok) throw new Error("brain.json missing");
-    const b = await r.json();
-    window.INFINITY_BRAIN = b;
-    console.log("🧠 Infinity brain snapshot loaded");
-  } catch (e) {
-    console.error("❌ brain snapshot load failed", e);
-  }
-})();
+  );
+}
