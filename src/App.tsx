@@ -1,3 +1,4 @@
+import BrainResult from './components/BrainResult'
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { SearchIndex } from '@/components/SearchIndex'
