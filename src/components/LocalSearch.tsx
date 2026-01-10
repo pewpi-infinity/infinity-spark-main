@@ -40,3 +40,5 @@ export async function runLocalSearch(query: string): Promise<SearchResult> {
 export default async function LocalSearch(query: string) {
   return runLocalSearch(query);
 }
+export { LocalSearch } from './LocalSearch'
+    
