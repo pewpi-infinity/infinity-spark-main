@@ -39,16 +39,3 @@ export default function BrainResult() {
   )
     }
                  
-
-// 🧱 c13b0 fallback loader (GitHub Pages static)
-(async () => {
-  try {
-    const r = await fetch("./brain/brain.json", { cache: "no-store" });
-    if (!r.ok) throw new Error("brain.json missing");
-    const b = await r.json();
-    window.INFINITY_BRAIN = b;
-    console.log("🧠 Infinity brain snapshot loaded");
-  } catch (e) {
-    console.error("❌ brain snapshot load failed", e);
-  }
-})();

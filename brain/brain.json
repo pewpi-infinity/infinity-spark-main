@@ -1,0 +1,9 @@
+{
+  "engine": "mongoose",
+  "status": "online",
+  "note": "Static brain snapshot for GitHub Pages",
+  "updated": "REPLACE_AT_RUNTIME",
+  "payload": {
+    "message": "Mongoose brain snapshot loaded successfully."
+  }
+}
