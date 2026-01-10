@@ -1,20 +1,29 @@
 import { synthesizeResearch } from "../lib/researchEngine";
 import { kv } from "../lib/kv";
 
+/**
+ * LocalSearch replacement that:
+ * - Generates a structured research-style result
+ * - Stores it via the app’s KV system
+ * - Returns the result for rendering
+ */
 export default async function LocalSearch(query: string) {
-  // 1. Generate research article (Spark replacement)
+  console.log("[LocalSearch] called with:", query);
+
+  // Generate research article style result
   const result = synthesizeResearch(query);
+  console.log("[LocalSearch] synthesized:", result);
 
-  // 2. Compute the SAME key Spark used
+  // Compute the same key format the rest of the app expects
   const key = `page:${result.token.id}`;
+  console.log("[LocalSearch] writing key:", key);
 
-  // 3. Store through KV (not localStorage directly)
   try {
     kv.set(key, result);
+    console.log("[LocalSearch] kv.set OK");
   } catch (err) {
-    console.error("Failed to set key", err);
+    console.error("[LocalSearch] kv.set FAILED", err);
   }
 
-  // 4. Return result for immediate rendering
   return result;
 }
