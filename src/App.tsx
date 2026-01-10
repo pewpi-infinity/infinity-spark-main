@@ -1,6 +1,6 @@
 import BrainResult from './components/BrainResult'
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useKV } from '@/lib/kv'
 import { SearchIndex } from '@/components/SearchIndex'
 import { ResultPage } from '@/components/ResultPage'
 import { StructureSelection, PageStructure } from '@/components/StructureSelection'
