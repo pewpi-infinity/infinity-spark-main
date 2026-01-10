@@ -1,6 +1,9 @@
 {
   "engine": "mongoose",
   "status": "online",
-  "updated": "2026-01-10T05:41:19Z",
-  "proof": "c13b0 ran inside infinity-spark-main"
+  "updated": "2026-01-10T05:48:10Z",
+  "note": "Static brain snapshot served by Vite/GitHub Pages",
+  "payload": {
+    "message": "Infinity brain snapshot loaded successfully."
+  }
 }
