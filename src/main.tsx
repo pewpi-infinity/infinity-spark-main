@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client'
+import { loadBrainSnapshot } from "./lib/brainSnapshot";
 import { ErrorBoundary } from "react-error-boundary";
 import "@github/spark/spark"
 
@@ -14,3 +15,7 @@ createRoot(document.getElementById('root')!).render(
     <App />
    </ErrorBoundary>
 )
+
+// 🧱 c13b0: load static brain snapshot (non-blocking)
+loadBrainSnapshot();
+
