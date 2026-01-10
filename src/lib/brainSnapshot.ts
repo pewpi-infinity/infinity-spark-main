@@ -1,11 +1,16 @@
 export async function loadBrainSnapshot() {
   try {
-    const r = await fetch("./brain/brain.json", { cache: "no-store" });
-    if (!r.ok) return null;
+    const base = import.meta.env.BASE_URL || "/";
+    const url = `${base}brain/brain.json`;
+
+    const r = await fetch(url, { cache: "no-store" });
+    if (!r.ok) throw new Error("brain.json not found");
+
     const d = await r.json();
     (window as any).INFINITY_BRAIN = d;
     return d;
-  } catch {
+  } catch (e) {
+    console.error("brain load failed", e);
     return null;
   }
 }
