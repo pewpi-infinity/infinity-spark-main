@@ -1,27 +1,26 @@
 export function synthesizeResearch(query: string) {
   return {
     title: query,
-    abstract: `
-${query} refers to a foundational concept used to describe the structural
-and functional layers involved in the system being constructed. This page
-serves as an initial research overview and architectural seed.
-`.trim(),
+    abstract:
+      `${query} is a foundational concept used to define the structure, behavior, ` +
+      `and intent of this site. This page is generated as a research-first overview ` +
+      `and serves as the base layer for content construction.`,
 
     sections: [
       {
-        heading: "Concept Overview",
-        content: `This section introduces ${query} and explains its role
-within the broader system architecture.`
+        heading: "Overview",
+        content:
+          `This section introduces ${query} and establishes its role within the system.`
       },
       {
-        heading: "System Role",
-        content: `Here we define how ${query} contributes to the behavior,
-structure, and extensibility of the platform.`
+        heading: "Technical Context",
+        content:
+          `${query} influences how components, data, and navigation are organized.`
       },
       {
-        heading: "Future Expansion",
-        content: `This concept can later be extended with live data,
-services, and domain-specific intelligence.`
+        heading: "Site Construction",
+        content:
+          `The information here is used to generate pages, widgets, and metadata.`
       }
     ],
 
@@ -34,7 +33,7 @@ services, and domain-specific intelligence.`
     token: {
       id: `PAGE_${query.replace(/\s+/g, "_").toUpperCase()}`,
       type: "site",
-      seed: Date.now().toString()
+      seed: String(Date.now())
     }
   };
 }
