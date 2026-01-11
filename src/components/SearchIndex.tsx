@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import { MagnifyingGlass, Books } from '@phosphor-icons/react'
 
 interface SearchIndexProps {
   onSearch: (query: string) => void
   isProcessing?: boolean
+  onViewPages?: () => void
+  hasPages?: boolean
 }
 
-export function SearchIndex({ onSearch, isProcessing }: SearchIndexProps) {
+export function SearchIndex({ onSearch, isProcessing, onViewPages, hasPages }: SearchIndexProps) {
   const [query, setQuery] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,6 +23,19 @@ export function SearchIndex({ onSearch, isProcessing }: SearchIndexProps) {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-2xl">
+        {hasPages && onViewPages && (
+          <div className="absolute top-6 right-6">
+            <Button
+              variant="outline"
+              onClick={onViewPages}
+              className="text-accent border-accent/30 hover:bg-accent/10"
+            >
+              <Books className="mr-2" size={20} />
+              View Pages
+            </Button>
+          </div>
+        )}
+        
         <h1 className="text-7xl font-bold text-center mb-16 tracking-tight">
           INFINITY
         </h1>
