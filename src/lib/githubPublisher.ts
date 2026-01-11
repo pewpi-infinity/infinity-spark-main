@@ -429,7 +429,7 @@ export async function publishPageToGitHub(page: BuildPage): Promise<GitHubPublis
       }
     }
 
-    const slug = generateSlug(page.title)
+    const slug = page.customSlug || page.slug || generateSlug(page.title)
     const html = await generatePageHTML(page, siteConfig.siteName)
     
     const filePath = `pages/${slug}/index.html`
@@ -444,7 +444,7 @@ export async function publishPageToGitHub(page: BuildPage): Promise<GitHubPublis
       }
     }
 
-    const pageUrl = `https://${REPO_OWNER}.github.io/${REPO_NAME}/pages/${slug}/`
+    const pageUrl = page.shareableUrl || `https://${REPO_OWNER}.github.io/${REPO_NAME}/pages/${slug}/`
 
     const pageData = {
       id: page.id,

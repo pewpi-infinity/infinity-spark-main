@@ -53,6 +53,8 @@ export interface BuildPage {
   publishedAt?: number
   analytics?: PageAnalytics
   publishStatus?: 'draft' | 'published' | 'awaiting-build'
+  customSlug?: string
+  shareableUrl?: string
 }
 
 export interface SearchResult {

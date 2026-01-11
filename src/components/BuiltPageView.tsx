@@ -40,6 +40,7 @@ import { publishPageToGitHub, hasGitHubToken } from '@/lib/githubPublisher'
 import { trackPageView, trackPageShare, initializePageAnalytics, trackPageEdit } from '@/lib/analytics'
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
 import { GitHubTokenDialog } from '@/components/GitHubTokenDialog'
+import { ShareURLDialog } from '@/components/ShareURLDialog'
 import type { BuildPage, PageFeatures } from '@/types'
 
 interface BuiltPageViewProps {
@@ -65,6 +66,7 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
   const [isVerifying, setIsVerifying] = useState(false)
   const [showHelpDialog, setShowHelpDialog] = useState(false)
   const [showTokenDialog, setShowTokenDialog] = useState(false)
+  const [showShareURLDialog, setShowShareURLDialog] = useState(false)
   const [hasToken, setHasToken] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [showUpdateDialog, setShowUpdateDialog] = useState(false)
@@ -140,6 +142,11 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
       return
     }
 
+    if (!page.customSlug || !page.shareableUrl) {
+      setShowShareURLDialog(true)
+      return
+    }
+
     setIsPublishing(true)
     const toastId = toast.loading('Publishing to infinity-spark...')
 
@@ -172,6 +179,24 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
     } finally {
       setIsPublishing(false)
     }
+  }
+
+  const handleSaveCustomURL = (customSlug: string, shareableUrl: string) => {
+    const updatedPage: BuildPage = {
+      ...page,
+      customSlug,
+      shareableUrl,
+      slug: customSlug,
+    }
+    onPageUpdate(updatedPage)
+    setShowShareURLDialog(false)
+    toast.success('Custom URL saved!', {
+      description: 'You can now publish your page'
+    })
+  }
+
+  const handleCustomizeURL = () => {
+    setShowShareURLDialog(true)
   }
 
   const handleTokenSuccess = () => {
@@ -608,13 +633,22 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                         1
                       </div>
                       <div className="text-left">
+                        <p className="font-semibold">Customize Share URL</p>
+                        <p className="text-xs text-muted-foreground">Set custom slug for easy sharing</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                        2
+                      </div>
+                      <div className="text-left">
                         <p className="font-semibold">Authenticate with GitHub</p>
                         <p className="text-xs text-muted-foreground">Provide token once (stored securely)</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
-                        2
+                        3
                       </div>
                       <div className="text-left">
                         <p className="font-semibold">Commit to Repository</p>
@@ -623,7 +657,7 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
-                        3
+                        4
                       </div>
                       <div className="text-left">
                         <p className="font-semibold">Live on GitHub Pages</p>
@@ -632,18 +666,53 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     </div>
                   </div>
 
+                  {page.customSlug && page.shareableUrl ? (
+                    <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold">Custom URL Configured</p>
+                        <Button
+                          onClick={handleCustomizeURL}
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-auto py-1"
+                        >
+                          <PencilSimple className="mr-1" size={14} />
+                          Edit
+                        </Button>
+                      </div>
+                      <div className="bg-card/50 rounded-lg p-3 font-mono text-xs break-all text-accent">
+                        {page.shareableUrl}
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handleCustomizeURL}
+                      variant="outline"
+                      size="lg"
+                      className="w-full border-accent/30 hover:bg-accent/10"
+                    >
+                      <LinkIcon className="mr-2" size={20} />
+                      Customize Share URL First
+                    </Button>
+                  )}
+
                   <Button
                     onClick={handlePublish}
-                    disabled={isPublishing}
+                    disabled={isPublishing || !page.customSlug}
                     size="lg"
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg h-auto font-bold shadow-lg hover:shadow-xl transition-all"
+                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg h-auto font-bold shadow-lg hover:shadow-xl transition-all"
                   >
                     <GithubLogo className="mr-3" size={24} weight="fill" />
                     {isPublishing ? 'Publishing...' : hasToken ? 'Publish to GitHub' : 'Setup & Publish'}
                   </Button>
                   
-                  <p className="text-xs text-muted-foreground">
-                    {hasToken ? 'Commit directly to infinity-spark repository' : 'First-time setup required'}
+                  <p className="text-xs text-muted-foreground text-center">
+                    {!page.customSlug 
+                      ? 'Set custom URL before publishing'
+                      : hasToken 
+                        ? 'Commit directly to infinity-spark repository' 
+                        : 'First-time setup required'
+                    }
                   </p>
                 </div>
               )}
@@ -1046,6 +1115,16 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
           </div>
         </DialogContent>
       </Dialog>
+
+      <ShareURLDialog
+        open={showShareURLDialog}
+        pageTitle={page.title}
+        pageId={page.id}
+        currentSlug={page.customSlug || page.slug}
+        currentShareableUrl={page.shareableUrl}
+        onSave={handleSaveCustomURL}
+        onCancel={() => setShowShareURLDialog(false)}
+      />
     </div>
   )
 }

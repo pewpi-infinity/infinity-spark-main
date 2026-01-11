@@ -77,11 +77,18 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Success criteria**: Generated pages are functional and include only selected features
 
 ### Direct GitHub API Publishing System
-- **Functionality**: Direct publishing to infinity-spark repository using GitHub API with one-time token authentication
-- **Purpose**: Removes manual file handling - users authenticate once and publish directly via API
+- **Functionality**: Direct publishing to infinity-spark repository using GitHub API with one-time token authentication and custom shareable URLs
+- **Purpose**: Removes manual file handling - users authenticate once, customize their URL, and publish directly via API
 - **Trigger**: User clicks "Publish to GitHub" button on built page
-- **Progression**: Publish initiated → user provides GitHub token (first time only) → token verified against c13b0/infinity-spark repo → page HTML generated → committed directly to repo via GitHub API → page registered in KV registry → GitHub Pages automatically builds in 1-3 minutes → user can verify when live
-- **Success criteria**: One-time token setup, direct commits to repo, automatic GitHub Pages deployment, live URL verification works, token stored securely in KV
+- **Progression**: Publish initiated → user customizes share URL (slug and full URL preview) → user provides GitHub token (first time only) → token verified against c13b0/infinity-spark repo → page HTML generated → committed directly to repo via GitHub API using custom slug → page registered in KV registry → GitHub Pages automatically builds in 1-3 minutes → user can verify when live
+- **Success criteria**: One-time token setup, custom URL configuration before publishing, direct commits to repo with custom slugs, automatic GitHub Pages deployment, live URL verification works, token stored securely in KV, shareable URLs are memorable and user-friendly
+
+### Custom Share URL System
+- **Functionality**: Allows users to create custom URL slugs for their pages before publishing, making them easy to share and remember
+- **Purpose**: Provides user control over page URLs for better sharing, branding, and SEO
+- **Trigger**: Required step before publishing - user must set custom URL, or can edit existing URL anytime
+- **Progression**: User clicks "Customize Share URL" → dialog opens with current title-based slug → user can edit slug (validated for URL-safe characters) → real-time preview of full shareable URL shown → user can auto-generate from title → slug and full URL saved to page → publishing proceeds with custom slug
+- **Success criteria**: Custom slugs are URL-safe (lowercase, numbers, hyphens only), minimum 3 characters, slug generation from title works, real-time URL preview accurate, published pages use custom slugs in file paths, shareable URLs are displayed prominently throughout UI
 
 ### Secondary Page Index
 - **Functionality**: Maintains searchable catalog of built pages showing draft vs published status
@@ -152,10 +159,19 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Failed Content Generation** - Gracefully show error, still mint token for query attempt
 - **No Feature Selection** - If user declines all enhancements, create minimal content-only page based on structure
 - **GitHub Token Not Configured** - Show token setup dialog on first publish attempt, verify token has correct permissions
+- **Custom URL Not Set** - Require custom URL configuration before publishing, show customize URL dialog, disable publish button until slug configured
+- **Invalid Custom Slug** - Validate slug contains only lowercase letters, numbers, and hyphens, show error for invalid characters
+- **Custom Slug Too Short** - Require minimum 3 characters, show validation error
+- **Custom Slug Conflict** - Check for existing pages with same slug, warn user and suggest alternatives
+- **Empty Custom Slug** - Prevent saving empty slugs, require user input
+- **Special Characters in Slug** - Strip special characters automatically, show sanitized version in real-time
+- **Custom URL Preview** - Show full GitHub Pages URL preview as user types slug, update in real-time
+- **Editing Custom URL** - Allow users to modify custom URL after initial setting, warn if page already published
+- **URL Copy Functionality** - Provide quick copy button for shareable URL, show confirmation toast
 - **GitHub Token Invalid** - Clear error message, option to reconfigure token
 - **GitHub API Failure** - Show specific error message from API, keep page in draft state, allow retry
 - **Repository Access Denied** - Verify token has Contents write permission for c13b0/infinity-spark
-- **File Already Exists in Repo** - Update existing file with new SHA, preserve commit history
+- **File Already Exists in Repo** - Update existing file with new SHA, preserve commit history using custom slug
 - **Awaiting GitHub Pages Build** - Show spinner with clear message about 1-3 minute build time, provide "Check if Live" button
 - **User Checks Before Build Complete** - "Check if Live" returns 404, inform user to wait longer and try again
 - **Page Goes Live** - URL verification succeeds (HTTP 200), status changes to "Published", live URL buttons enabled
