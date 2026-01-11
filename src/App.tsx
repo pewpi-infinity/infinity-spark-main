@@ -10,6 +10,7 @@ import { PageIndex } from '@/components/PageIndex'
 import { LocalSearch } from '@/components/LocalSearch'
 import { TokenView } from '@/components/TokenView'
 import { SiteConfigDialog } from '@/components/SiteConfigDialog'
+import { QuickStartGuide } from '@/components/QuickStartGuide'
 import { useSiteConfig } from '@/lib/siteConfig'
 import { Toaster, toast } from 'sonner'
 import { processSearch, createToken } from '@/lib/search'
@@ -36,19 +37,28 @@ function App() {
   const [selectedStructure, setSelectedStructure] = useState<PageStructure | null>(null)
   const [customPageTitle, setCustomPageTitle] = useState('')
   const [showSiteConfig, setShowSiteConfig] = useState(false)
+  const [showQuickStart, setShowQuickStart] = useState(false)
 
   const [tokens, setTokens, _deleteTokens] = useKV<Token[]>('infinity-tokens', [])
   const [pages, setPages, _deletePages] = useKV<BuildPage[]>('infinity-pages', [])
+  const [hasSeenQuickStart, setHasSeenQuickStart] = useKV<boolean>('has-seen-quickstart', false)
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
   console.log('[INFINITY] App render - view:', view, 'siteConfig:', siteConfig, 'tokens:', tokens?.length, 'pages:', pages?.length)
 
   useEffect(() => {
-    if (siteConfig && siteConfig.siteName === 'Untitled') {
+    if (!hasSeenQuickStart && (tokens || []).length === 0 && (pages || []).length === 0) {
+      const timer = setTimeout(() => setShowQuickStart(true), 800)
+      return () => clearTimeout(timer)
+    }
+  }, [hasSeenQuickStart, tokens, pages])
+
+  useEffect(() => {
+    if (siteConfig && siteConfig.siteName === 'Untitled' && !showQuickStart) {
       const timer = setTimeout(() => setShowSiteConfig(true), 500)
       return () => clearTimeout(timer)
     }
-  }, [siteConfig])
+  }, [siteConfig, showQuickStart])
 
   /* ============================
      RESTORED FUNCTION (THE BUG)
@@ -235,6 +245,17 @@ function App() {
           onSave={updateSiteConfig}
         />
       )}
+
+      <QuickStartGuide
+        open={showQuickStart}
+        onClose={() => {
+          setShowQuickStart(false)
+          setHasSeenQuickStart(true)
+        }}
+        onStartDemo={() => {
+          setShowSiteConfig(true)
+        }}
+      />
     </div>
   )
 }
