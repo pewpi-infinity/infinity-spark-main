@@ -22,12 +22,12 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen z-10">
       <Toaster position="top-center" />
       
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-2xl">
-          <h1 className="text-7xl font-bold text-center mb-16 tracking-tight">
+          <h1 className="text-7xl font-bold text-center mb-16 tracking-tight text-foreground">
             INFINITY
           </h1>
           
