@@ -260,6 +260,7 @@ function App() {
       {view === 'index' && (
         <PageIndex
           pages={safePages}
+          tokens={safeTokens}
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
@@ -315,9 +316,9 @@ function App() {
 
       <FeatureSelection
         open={showFeatureSelection}
-        onCancel={() => setShowFeatureSelection(false)}
-        onComplete={handleFeatureSelection}
-        structure={selectedStructure ?? undefined}
+        onClose={() => setShowFeatureSelection(false)}
+        onSelect={handleFeatureSelection}
+        structure={selectedStructure}
       />
 
       <SiteConfigDialog
