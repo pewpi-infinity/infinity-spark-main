@@ -309,11 +309,14 @@ function App() {
       )}
 
       <StructureSelection
+        open={showStructureSelection}
+        onClose={() => setShowStructureSelection(false)}
+        onSelect={handleStructureSelection}
       />
 
       <FeatureSelection
-      />
-FeatureSelection(false)}
+        open={showFeatureSelection}
+        onClose={() => setShowFeatureSelection(false)}
         onSelect={handleFeatureSelection}
         structure={selectedStructure}
       />
@@ -321,7 +324,7 @@ FeatureSelection(false)}
       <SiteConfigDialog
         open={showSiteConfig}
         config={siteConfig}
-      <SiteConfigDialog
+        onClose={() => setShowSiteConfig(false)}
         onSave={updateSiteConfig}
       />
 
@@ -337,9 +340,6 @@ FeatureSelection(false)}
       />
     </div>
   )
-}
-
-export default App
 }
 
 export default App
