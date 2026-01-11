@@ -41,6 +41,8 @@ function App() {
   const [pages, setPages, _deletePages] = useKV<BuildPage[]>('infinity-pages', [])
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
+  console.log('[INFINITY] App mounted. Current view:', view)
+
   useEffect(() => {
     if (siteConfig && siteConfig.siteName === 'Untitled') {
       const timer = setTimeout(() => setShowSiteConfig(true), 500)
@@ -48,10 +50,28 @@ function App() {
     }
   }, [siteConfig])
 
+  if (!siteConfig) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <h1 className="text-6xl font-bold tracking-tight">INFINITY</h1>
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <div className="h-2 w-2 bg-accent rounded-full animate-pulse" />
+            <div className="h-2 w-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+            <div className="h-2 w-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+          </div>
+          <p className="text-sm text-muted-foreground">Initializing...</p>
+        </div>
+      </div>
+    )
+  }
+
   /* ============================
      RESTORED FUNCTION (THE BUG)
      ============================ */
   const handleSearch = async (query: string) => {
+    if (isProcessing) return
+    
     setIsProcessing(true)
     const toastId = toast.loading('Processing your search...')
 
@@ -72,7 +92,7 @@ function App() {
       toast.error(
         error instanceof Error ? error.message : 'Failed to process search'
       )
-      console.error(error)
+      console.error('[Search Error]', error)
     } finally {
       setIsProcessing(false)
     }
@@ -139,6 +159,7 @@ function App() {
           onOpenSettings={() => setShowSiteConfig(true)}
           hasTokens={(tokens || []).length > 0}
           hasPages={(pages || []).length > 0}
+          isProcessing={isProcessing}
         />
       )}
 
