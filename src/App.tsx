@@ -41,7 +41,7 @@ function App() {
   const [pages, setPages, _deletePages] = useKV<BuildPage[]>('infinity-pages', [])
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
-  console.log('[INFINITY] App mounted. Current view:', view)
+  console.log('[INFINITY] App render - view:', view, 'siteConfig:', siteConfig, 'tokens:', tokens?.length, 'pages:', pages?.length)
 
   useEffect(() => {
     if (siteConfig && siteConfig.siteName === 'Untitled') {
@@ -49,22 +49,6 @@ function App() {
       return () => clearTimeout(timer)
     }
   }, [siteConfig])
-
-  if (!siteConfig) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <h1 className="text-6xl font-bold tracking-tight">INFINITY</h1>
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
-            <div className="h-2 w-2 bg-accent rounded-full animate-pulse" />
-            <div className="h-2 w-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-            <div className="h-2 w-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
-          </div>
-          <p className="text-sm text-muted-foreground">Initializing...</p>
-        </div>
-      </div>
-    )
-  }
 
   /* ============================
      RESTORED FUNCTION (THE BUG)
@@ -146,7 +130,7 @@ function App() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-background text-foreground">
       <Toaster position="top-center" theme="dark" />
 
       <BrainResult />
@@ -251,7 +235,7 @@ function App() {
           onSave={updateSiteConfig}
         />
       )}
-    </>
+    </div>
   )
 }
 
