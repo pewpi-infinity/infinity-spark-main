@@ -318,46 +318,7 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
 
   const handleRepublish = async () => {
     setShowUpdateDialog(false)
-    
-    const tokenExists = await hasGitHubToken()
-    
-    if (!tokenExists) {
-      setShowTokenDialog(true)
-      return
-    }
-
-    setIsPublishing(true)
-    const toastId = toast.loading('Republishing updated page...')
-
-    try {
-      const result = await publishPageToGitHub(page)
-
-      if (result.success && result.url) {
-        const updatedPage: BuildPage = {
-          ...page,
-          published: false,
-          publishStatus: 'awaiting-build',
-          url: result.url,
-          publishedAt: Date.now(),
-        }
-
-        onPageUpdate(updatedPage)
-
-        toast.dismiss(toastId)
-        toast.success('Page republished!', {
-          description: 'Changes will be live in 1-3 minutes'
-        })
-      } else {
-        toast.dismiss(toastId)
-        toast.error(result.error || 'Failed to republish page')
-      }
-    } catch (error) {
-      toast.dismiss(toastId)
-      toast.error('Failed to republish page')
-      console.error(error)
-    } finally {
-      setIsPublishing(false)
-    }
+    await handlePublish()
   }
 
   const handleFeatureToggle = (feature: keyof PageFeatures) => {
@@ -800,6 +761,15 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     >
                       <ShareNetwork className="mr-2" size={18} />
                       Share Page
+                    </Button>
+                    <Button
+                      onClick={handleRepublish}
+                      disabled={isPublishing}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <ArrowCounterClockwise className="mr-2" size={18} />
+                      {isPublishing ? 'Publishing...' : 'Republish'}
                     </Button>
                   </div>
                 </div>
