@@ -198,7 +198,24 @@ function App() {
   }
 
   console.log('[INFINITY] Rendering view:', view)
+  console.log('[INFINITY] currentPage:', currentPage ? currentPage.id : 'none')
+  console.log('[INFINITY] currentToken:', currentToken ? currentToken.id : 'none')
   console.log('[INFINITY] siteConfig:', siteConfig)
+
+  if (view === 'page' && (!currentPage || !currentPage.id)) {
+    console.warn('[INFINITY] Page view requested but no valid page, redirecting to search')
+    setTimeout(() => setView('search'), 0)
+  }
+
+  if (view === 'result' && (!currentResult || !currentToken)) {
+    console.warn('[INFINITY] Result view requested but no valid result, redirecting to search')
+    setTimeout(() => setView('search'), 0)
+  }
+
+  if (view === 'tokenView' && !currentToken) {
+    console.warn('[INFINITY] TokenView requested but no valid token, redirecting to search')
+    setTimeout(() => setView('search'), 0)
+  }
 
   return (
     <div className="min-h-screen text-foreground relative bg-background">
@@ -223,16 +240,20 @@ function App() {
           />
         )}
 
-        {view === 'page' && currentPage && (
+        {view === 'page' && currentPage && currentPage.id && (
           <BuiltPageView
+            key={currentPage.id}
             page={currentPage}
             allPages={safePages}
             onBack={handleBackToSearch}
-            onPageUpdate={(p) =>
+            onPageUpdate={(p) => {
               setPages((current) =>
                 (current || []).map((x) => (x.id === p.id ? p : x))
               )
-            }
+              if (currentPage && currentPage.id === p.id) {
+                setCurrentPage(p)
+              }
+            }}
             onExpandToken={(tokenId) => {
               const token = safeTokens.find(t => t.id === tokenId)
               if (token) {
@@ -242,8 +263,8 @@ function App() {
             }}
             onNavigateToPage={(p) => {
               if (p && p.id) {
+                console.log('[INFINITY] Navigating to page:', p.id, p.title)
                 setCurrentPage(p)
-                setView('page')
               }
             }}
           />
@@ -296,6 +317,13 @@ function App() {
               setIsExpanding(true)
               setShowStructureSelection(true)
             }}
+          />
+        )}
+
+        {!['search', 'result', 'page', 'index', 'localSearch', 'tokenView'].includes(view) && (
+          <SearchIndex
+            onSearch={handleSearch}
+            isProcessing={isProcessing}
           />
         )}
 

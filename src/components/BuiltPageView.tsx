@@ -81,7 +81,7 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
     }
 
     hasGitHubToken().then(setHasToken)
-  }, [isValidPage])
+  }, [page.id])
 
   if (!isValidPage) {
     return (
@@ -411,6 +411,7 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                       key={relatedPage.id}
                       className="bg-card/30 border-border/50 hover:border-accent/30 transition-all cursor-pointer"
                       onClick={() => {
+                        console.log('[INFINITY] BuiltPageView: Navigating to related page', relatedPage.id, relatedPage.title)
                         if (onNavigateToPage && relatedPage && relatedPage.id) {
                           onNavigateToPage(relatedPage)
                         }

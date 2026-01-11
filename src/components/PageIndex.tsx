@@ -119,6 +119,7 @@ export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageI
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {
+                      console.log('[INFINITY] PageIndex: Viewing page', page.id, page.title)
                       if (page && page.id) {
                         onViewPage(page)
                       }
@@ -131,7 +132,10 @@ export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageI
                   </Button>
                   {page.published && page.url && (
                     <Button
-                      onClick={() => window.open(page.url, '_blank')}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.open(page.url, '_blank')
+                      }}
                       className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
                     >
                       <LinkIcon className="mr-2" size={18} />
