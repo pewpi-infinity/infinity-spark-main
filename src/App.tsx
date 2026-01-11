@@ -341,23 +341,6 @@ function App() {
         />
       </div>
     )
-  } catch (error) {
-    console.error('[INFINITY] Render error:', error)
-    return (
-      <div className="min-h-screen flex items-center justify-center text-foreground px-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-4xl font-bold mb-4 text-destructive">Render Error</h1>
-          <p className="text-muted-foreground mb-6">
-            The application encountered an error while rendering. Please check the console for details.
-          </p>
-          <Button onClick={() => window.location.reload()}>
-            Refresh Page
-          </Button>
-        </div>
-      </div>
-    )
-  }
 }
 
 export default App
-  
