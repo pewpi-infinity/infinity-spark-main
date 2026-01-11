@@ -118,7 +118,11 @@ export function PageIndex({ pages, onViewPage, onBack, onSearchArchives }: PageI
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => onViewPage(page)}
+                    onClick={() => {
+                      if (page && page.id) {
+                        onViewPage(page)
+                      }
+                    }}
                     variant="outline"
                     className="flex-1"
                   >

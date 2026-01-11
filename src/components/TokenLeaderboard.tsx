@@ -89,7 +89,11 @@ export function TokenLeaderboard({ tokens, pages, onTokenClick }: TokenLeaderboa
                       ? 'bg-gradient-to-r from-accent/10 to-primary/5 border-accent/30' 
                       : 'bg-card/30 border-border/50'
                   }`}
-                  onClick={() => onTokenClick?.(entry.token)}
+                  onClick={() => {
+                    if (entry.token && entry.token.id && onTokenClick) {
+                      onTokenClick(entry.token)
+                    }
+                  }}
                 >
                   <div className="flex-shrink-0 w-12 flex items-center justify-center">
                     {getRankIcon(entry.rank)}

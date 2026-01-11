@@ -23,20 +23,39 @@ interface TokenViewProps {
 export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate, onExpandToken }: TokenViewProps) {
   const [showExpansion, setShowExpansion] = useState(false)
   
-  const associatedPages = pages.filter(p => 
-    p.tokenId === token.id || (token.pageIds && token.pageIds.includes(p.id))
-  )
+  const isValidToken = token && token.id
   
-  const primaryPage = token.pageId 
+  const associatedPages = isValidToken ? pages.filter(p => 
+    p && p.id && (p.tokenId === token.id || (token.pageIds && token.pageIds.includes(p.id)))
+  ) : []
+  
+  const primaryPage = isValidToken && token.pageId 
     ? pages.find(p => p.id === token.pageId) 
     : associatedPages[0]
 
   useEffect(() => {
-    if (onTokenUpdate) {
+    if (isValidToken && onTokenUpdate) {
       const updatedToken = trackTokenView(token)
       onTokenUpdate(updatedToken)
     }
-  }, [])
+  }, [isValidToken])
+
+  if (!isValidToken) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold text-destructive">Token Not Found</h2>
+          <p className="text-muted-foreground">
+            The requested token could not be loaded
+          </p>
+          <Button onClick={onBack} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <ArrowLeft className="mr-2" size={20} />
+            Back
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const handleViewLive = () => {
     if (primaryPage?.url) {
@@ -237,7 +256,11 @@ export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate, onE
                               )}
                               {onViewPage && (
                                 <Button
-                                  onClick={() => onViewPage(page)}
+                                  onClick={() => {
+                                    if (page && page.id) {
+                                      onViewPage(page)
+                                    }
+                                  }}
                                   variant="ghost"
                                   size="sm"
                                   className="text-xs h-7"

@@ -49,7 +49,7 @@ function App() {
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
   const safeTokens = tokens || []
-  const safePages = pages || []
+  const safePages = pages ? pages.filter(p => p && p.id) : []
   const safeHasSeenQuickStart = hasSeenQuickStart || false
 
   console.log('[INFINITY] App initialized and rendering')
@@ -241,7 +241,10 @@ function App() {
               }
             }}
             onNavigateToPage={(p) => {
-              setCurrentPage(p)
+              if (p && p.id) {
+                setCurrentPage(p)
+                setView('page')
+              }
             }}
           />
         )}

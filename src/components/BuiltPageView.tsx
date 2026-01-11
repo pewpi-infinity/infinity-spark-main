@@ -61,11 +61,15 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
   const [showTokenDialog, setShowTokenDialog] = useState(false)
   const [hasToken, setHasToken] = useState(false)
 
-  const relatedPages = allPages.filter(p => 
-    p.tokenId === page.tokenId && p.id !== page.id
-  )
+  const isValidPage = page && page.id
+
+  const relatedPages = isValidPage ? allPages.filter(p => 
+    p && p.id && p.tokenId === page.tokenId && p.id !== page.id
+  ) : []
 
   useEffect(() => {
+    if (!isValidPage) return
+
     if (!page.analytics) {
       const updatedPage = {
         ...page,
@@ -77,7 +81,24 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
     }
 
     hasGitHubToken().then(setHasToken)
-  }, [])
+  }, [isValidPage])
+
+  if (!isValidPage) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold text-destructive">Page Not Found</h2>
+          <p className="text-muted-foreground">
+            The requested page could not be loaded
+          </p>
+          <Button onClick={onBack} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <ArrowLeft className="mr-2" size={20} />
+            Back to Search
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const featureIcons = {
     charts: <ChartBar size={20} />,
@@ -389,7 +410,11 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     <Card
                       key={relatedPage.id}
                       className="bg-card/30 border-border/50 hover:border-accent/30 transition-all cursor-pointer"
-                      onClick={() => onNavigateToPage?.(relatedPage)}
+                      onClick={() => {
+                        if (onNavigateToPage && relatedPage && relatedPage.id) {
+                          onNavigateToPage(relatedPage)
+                        }
+                      }}
                     >
                       <CardContent className="pt-4">
                         <div className="flex items-start justify-between gap-4">

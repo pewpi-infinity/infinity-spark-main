@@ -104,7 +104,11 @@ export function LocalSearch({ tokens, pages, onViewToken, onViewPage, onBack }: 
                       <Card
                         key={token.id}
                         className="cursor-pointer hover:bg-accent/5 transition-colors"
-                        onClick={() => onViewToken(token)}
+                        onClick={() => {
+                          if (token && token.id) {
+                            onViewToken(token)
+                          }
+                        }}
                       >
                         <CardContent className="p-4">
                           <TokenDisplay token={token} />
@@ -131,7 +135,11 @@ export function LocalSearch({ tokens, pages, onViewToken, onViewPage, onBack }: 
                       <Card
                         key={page.id}
                         className="cursor-pointer hover:bg-accent/5 transition-colors"
-                        onClick={() => onViewPage(page)}
+                        onClick={() => {
+                          if (page && page.id) {
+                            onViewPage(page)
+                          }
+                        }}
                       >
                         <CardHeader>
                           <div className="flex items-start justify-between gap-4">
@@ -182,7 +190,11 @@ export function LocalSearch({ tokens, pages, onViewToken, onViewPage, onBack }: 
                     <Card
                       key={token.id}
                       className="cursor-pointer hover:bg-accent/5 transition-colors"
-                      onClick={() => onViewToken(token)}
+                      onClick={() => {
+                        if (token && token.id) {
+                          onViewToken(token)
+                        }
+                      }}
                     >
                       <CardContent className="p-4">
                         <TokenDisplay token={token} />
@@ -213,7 +225,11 @@ export function LocalSearch({ tokens, pages, onViewToken, onViewPage, onBack }: 
                     <Card
                       key={page.id}
                       className="cursor-pointer hover:bg-accent/5 transition-colors"
-                      onClick={() => onViewPage(page)}
+                      onClick={() => {
+                        if (page && page.id) {
+                          onViewPage(page)
+                        }
+                      }}
                     >
                       <CardHeader>
                         <div className="flex items-start justify-between gap-4">
