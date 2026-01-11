@@ -58,7 +58,7 @@ function App() {
 
   useEffect(() => {
     try {
-      if (!safeHasSeenQuickStart && safeTokens.length === 0 && safePages.length === 0) {
+      if (!safeHasSeenQuickStart && safeTokens.length === 0 && safePages.length === 0 && !showQuickStart) {
         const timer = setTimeout(() => setShowQuickStart(true), 800)
         return () => clearTimeout(timer)
       }
@@ -66,11 +66,11 @@ function App() {
       console.error('[INFINITY] Error in quickstart effect:', error)
       setHasError(true)
     }
-  }, [safeHasSeenQuickStart, safeTokens, safePages])
+  }, [safeHasSeenQuickStart, safeTokens.length, safePages.length, showQuickStart])
 
   useEffect(() => {
     try {
-      if (siteConfig.siteName === 'Untitled' && !showQuickStart && safeTokens.length === 0) {
+      if (siteConfig.siteName === 'Untitled' && !showQuickStart && !showSiteConfig && safeTokens.length === 0 && safeHasSeenQuickStart) {
         const timer = setTimeout(() => setShowSiteConfig(true), 500)
         return () => clearTimeout(timer)
       }
@@ -78,7 +78,7 @@ function App() {
       console.error('[INFINITY] Error in siteConfig effect:', error)
       setHasError(true)
     }
-  }, [siteConfig, showQuickStart, safeTokens])
+  }, [siteConfig.siteName, showQuickStart, showSiteConfig, safeTokens.length, safeHasSeenQuickStart])
 
   if (hasError) {
     return (
@@ -260,7 +260,6 @@ function App() {
       {view === 'index' && (
         <PageIndex
           pages={safePages}
-          tokens={safeTokens}
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
@@ -310,15 +309,15 @@ function App() {
 
       <StructureSelection
         open={showStructureSelection}
-        onClose={() => setShowStructureSelection(false)}
-        onSelect={handleStructureSelection}
+        onCancel={() => setShowStructureSelection(false)}
+        onComplete={handleStructureSelection}
       />
 
       <FeatureSelection
         open={showFeatureSelection}
-        onClose={() => setShowFeatureSelection(false)}
-        onSelect={handleFeatureSelection}
-        structure={selectedStructure}
+        onCancel={() => setShowFeatureSelection(false)}
+        onComplete={handleFeatureSelection}
+        structure={selectedStructure ?? undefined}
       />
 
       <SiteConfigDialog
