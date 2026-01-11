@@ -1,10 +1,34 @@
-import { synthesizeResearch } from '@/lib/researchEngine'
-import { kv } from '@/lib/kv'
+import type { Token, BuildPage } from '@/types'
 
-export async function LocalSearch(query: string) {
-  const result = synthesizeResearch(query)
-  kv.set(`page:${result.token.id}`, result)
-  return result
+export function searchTokens(tokens: Token[], query: string): Token[] {
+  if (!query.trim()) {
+    return tokens
+  }
+
+  const lowerQuery = query.toLowerCase()
+
+  return tokens.filter((token) => {
+    return (
+      token.query.toLowerCase().includes(lowerQuery) ||
+      token.content.toLowerCase().includes(lowerQuery) ||
+      token.id.toLowerCase().includes(lowerQuery)
+    )
+  }).sort((a, b) => b.timestamp - a.timestamp)
 }
 
-export default LocalSearch
+export function searchPages(pages: BuildPage[], query: string): BuildPage[] {
+  if (!query.trim()) {
+    return pages
+  }
+
+  const lowerQuery = query.toLowerCase()
+
+  return pages.filter((page) => {
+    return (
+      page.title.toLowerCase().includes(lowerQuery) ||
+      page.content.toLowerCase().includes(lowerQuery) ||
+      page.id.toLowerCase().includes(lowerQuery) ||
+      page.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+    )
+  }).sort((a, b) => b.timestamp - a.timestamp)
+}

@@ -40,7 +40,7 @@ export async function setSiteConfig(config: Partial<SiteConfig>): Promise<SiteCo
 }
 
 export function useSiteConfig(): [SiteConfig | null, (config: Partial<SiteConfig>) => Promise<void>] {
-  const [config, setConfig] = useKV<SiteConfig>('site-config', {
+  const [config, setConfig, _deleteConfig] = useKV<SiteConfig>('site-config', {
     siteName: 'Untitled',
     ownerName: 'User',
     githubUser: 'pewpi-infinity',

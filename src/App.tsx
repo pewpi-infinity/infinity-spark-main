@@ -1,6 +1,6 @@
 import BrainResult from './components/BrainResult'
 import { useState, useEffect } from 'react'
-import { useKV } from '@/lib/kv'
+import { useKV } from '@github/spark/hooks'
 import { SearchIndex } from '@/components/SearchIndex'
 import { ResultPage } from '@/components/ResultPage'
 import { StructureSelection, PageStructure } from '@/components/StructureSelection'
@@ -37,8 +37,8 @@ function App() {
   const [customPageTitle, setCustomPageTitle] = useState('')
   const [showSiteConfig, setShowSiteConfig] = useState(false)
 
-  const [tokens, setTokens] = useKV<Token[]>('infinity-tokens', [])
-  const [pages, setPages] = useKV<BuildPage[]>('infinity-pages', [])
+  const [tokens, setTokens, _deleteTokens] = useKV<Token[]>('infinity-tokens', [])
+  const [pages, setPages, _deletePages] = useKV<BuildPage[]>('infinity-pages', [])
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
   useEffect(() => {
@@ -137,8 +137,8 @@ function App() {
           onViewArchives={() => setView('localSearch')}
           onViewPages={() => setView('index')}
           onOpenSettings={() => setShowSiteConfig(true)}
-          hasTokens={tokens.length > 0}
-          hasPages={pages.length > 0}
+          hasTokens={(tokens || []).length > 0}
+          hasPages={(pages || []).length > 0}
         />
       )}
 
@@ -165,7 +165,7 @@ function App() {
 
       {view === 'index' && (
         <PageIndex
-          pages={pages}
+          pages={pages || []}
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
@@ -177,8 +177,8 @@ function App() {
 
       {view === 'localSearch' && (
         <LocalSearch
-          tokens={tokens}
-          pages={pages}
+          tokens={tokens || []}
+          pages={pages || []}
           onViewToken={(t) => {
             setCurrentToken(t)
             setView('tokenView')
@@ -194,7 +194,7 @@ function App() {
       {view === 'tokenView' && currentToken && (
         <TokenView
           token={currentToken}
-          pages={pages}
+          pages={pages || []}
           onBack={() => setView('localSearch')}
           onViewPage={(p) => {
             setCurrentPage(p)
