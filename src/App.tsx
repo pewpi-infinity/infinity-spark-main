@@ -212,10 +212,13 @@ function App() {
     <div className="relative min-h-screen">
       <Toaster position="top-center" />
 
-          isProcessing={isProcessing}
+      {shouldShowSearch && (
         <SearchIndex
           onSearch={handleSearch}
           isProcessing={isProcessing}
+        />
+      )}
+
       {view === 'result' && currentResult && currentToken && (
         <ResultPage
           result={currentResult}
@@ -225,11 +228,9 @@ function App() {
         />
       )}
 
-        />entPage && currentPage.id && (
-      )}
-
-          page={currentPage}
+      {view === 'page' && currentPage && currentPage.id && (
         <BuiltPageView
+          page={currentPage}
           onBack={handleBackToSearch}
           onPageUpdate={(p) => {
             setPages((current) =>
@@ -237,11 +238,11 @@ function App() {
             )
             if (currentPage && currentPage.id === p.id) {
               setCurrentPage(p)
-            )
+            }
           }}
           onExpandToken={(tokenId) => {
-            }ns.find(t => t.id === tokenId)
-          }}
+            const token = safeTokens.find(t => t.id === tokenId)
+            if (token) {
               setCurrentToken(token)
               setView('tokenView')
             }
@@ -250,26 +251,27 @@ function App() {
             if (p && p.id) {
               console.log('[INFINITY] Navigating to page:', p.id, p.title)
               setCurrentPage(p)
+              setView('page')
             }
           }}
         />
-            }
-          }}
-      {view === 'index' && (
       )}
 
+      {view === 'index' && (
+        <PageIndex
+          pages={safePages}
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
           }}
           onBack={handleBackToSearch}
           onSearchArchives={() => setView('localSearch')}
-          }}
+        />
       )}
 
-        />&& (
+      {view === 'localSearch' && (
         <LocalSearch
-
+          tokens={safeTokens}
           pages={safePages}
           onViewToken={(t) => {
             setCurrentToken(t)
@@ -277,51 +279,49 @@ function App() {
           }}
           onViewPage={(p) => {
             setCurrentPage(p)
-          }}
+            setView('page')
           }}
           onBack={handleBackToSearch}
         />
-          }}
-
-        /> && currentToken && (
       )}
-ken={currentToken}
+
+      {view === 'tokenView' && currentToken && (
+        <TokenView
+          token={currentToken}
           pages={safePages}
           onBack={() => setView('localSearch')}
-          token={currentToken}
+          onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
           }}
           onTokenUpdate={(t) =>
             setTokens((current) =>
-          }}(x.id === t.id ? t : x))
+              (current || []).map((x) => (x.id === t.id ? t : x))
             )
           }
           onExpandToken={(result) => {
             setCurrentResult(result)
-          }g(true)
+            setIsExpanding(true)
             setShowStructureSelection(true)
           }}
         />
       )}
 
       <StructureSelection
-      )}tureSelection}
-reSelection(false)}
-      <StructureSelection
         open={showStructureSelection}
-        onClose={() => setShowStructureSelection(false)}
-        onSelect={handleStructureSelection}
-      />open={showFeatureSelection}
-etShowFeatureSelection(false)}
-      <FeatureSelection
-        open={showFeatureSelection}
-        onClose={() => setShowFeatureSelection(false)}
-        onSelect={handleFeatureSelection}
-        structure={selectedStructure}
+        defaultTitle={customPageTitle}
+        onComplete={handleStructureSelection}
+        onCancel={() => setShowStructureSelection(false)}
       />
 
-      <SiteConfigDialogonfig(false)}
+      <FeatureSelection
+        open={showFeatureSelection}
+        structure={selectedStructure || undefined}
+        onComplete={handleFeatureSelection}
+        onCancel={() => setShowFeatureSelection(false)}
+      />
+
+      <SiteConfigDialog
         open={showSiteConfig}
         config={siteConfig}
         onClose={() => setShowSiteConfig(false)}
@@ -340,3 +340,6 @@ etShowFeatureSelection(false)}
       />
     </div>
   )
+}
+
+export default App
