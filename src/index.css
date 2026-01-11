@@ -1,25 +1,22 @@
-@import 'tailwindcss';
 @import "tw-animate-css";
 
-@layer base {
-  * {
-    @apply border-border
-  }
-  
-  html {
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  body {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
-    overflow-x: hidden;
-  }
-  
-  .font-mono {
-    font-family: 'JetBrains Mono', monospace;
-  }
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
 :root {
