@@ -162,7 +162,7 @@ function App() {
   console.log('[INFINITY] siteConfig:', siteConfig)
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground relative">
       <Toaster position="top-center" theme="dark" />
 
       <BrainResult />
@@ -170,11 +170,6 @@ function App() {
       {view === 'search' && (
         <SearchIndex
           onSearch={handleSearch}
-          onViewArchives={() => setView('localSearch')}
-          onViewPages={() => setView('index')}
-          onOpenSettings={() => setShowSiteConfig(true)}
-          hasTokens={(tokens || []).length > 0}
-          hasPages={(pages || []).length > 0}
           isProcessing={isProcessing}
         />
       )}
