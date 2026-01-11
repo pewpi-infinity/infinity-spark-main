@@ -11,10 +11,12 @@ import { LocalSearch } from '@/components/LocalSearch'
 import { TokenView } from '@/components/TokenView'
 import { SiteConfigDialog } from '@/components/SiteConfigDialog'
 import { QuickStartGuide } from '@/components/QuickStartGuide'
+import { DebugInfo } from '@/components/DebugInfo'
 import { useSiteConfig } from '@/lib/siteConfig'
 import { Toaster, toast } from 'sonner'
 import { processSearch, createToken } from '@/lib/search'
 import { initializeTokenAnalytics, trackTokenPromotion } from '@/lib/analytics'
+import { Button } from '@/components/ui/button'
 import type { Token, SearchResult, PageFeatures, BuildPage } from '@/types'
 
 type AppView =
@@ -39,37 +41,60 @@ function App() {
   const [showSiteConfig, setShowSiteConfig] = useState(false)
   const [showQuickStart, setShowQuickStart] = useState(false)
   const [isExpanding, setIsExpanding] = useState(false)
+  const [hasError, setHasError] = useState(false)
 
   const [tokens, setTokens] = useKV<Token[]>('infinity-tokens', [])
   const [pages, setPages] = useKV<BuildPage[]>('infinity-pages', [])
   const [hasSeenQuickStart, setHasSeenQuickStart] = useKV<boolean>('has-seen-quickstart', false)
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
+  const safeTokens = tokens || []
+  const safePages = pages || []
+  const safeHasSeenQuickStart = hasSeenQuickStart || false
+
   console.log('[INFINITY] App initialized and rendering')
-  console.log('[INFINITY] View:', view, '| Tokens:', tokens?.length ?? 0, '| Pages:', pages?.length ?? 0)
+  console.log('[INFINITY] View:', view, '| Tokens:', safeTokens.length, '| Pages:', safePages.length)
   console.log('[INFINITY] siteConfig loaded:', siteConfig ? 'yes' : 'loading...')
 
   useEffect(() => {
     try {
-      if (!hasSeenQuickStart && (tokens || []).length === 0 && (pages || []).length === 0) {
+      if (!safeHasSeenQuickStart && safeTokens.length === 0 && safePages.length === 0) {
         const timer = setTimeout(() => setShowQuickStart(true), 800)
         return () => clearTimeout(timer)
       }
     } catch (error) {
       console.error('[INFINITY] Error in quickstart effect:', error)
+      setHasError(true)
     }
-  }, [hasSeenQuickStart, tokens, pages])
+  }, [safeHasSeenQuickStart, safeTokens, safePages])
 
   useEffect(() => {
     try {
-      if (siteConfig && siteConfig.siteName === 'Untitled' && !showQuickStart && (tokens || []).length === 0) {
+      if (siteConfig && siteConfig.siteName === 'Untitled' && !showQuickStart && safeTokens.length === 0) {
         const timer = setTimeout(() => setShowSiteConfig(true), 500)
         return () => clearTimeout(timer)
       }
     } catch (error) {
       console.error('[INFINITY] Error in siteConfig effect:', error)
+      setHasError(true)
     }
-  }, [siteConfig, showQuickStart, tokens])
+  }, [siteConfig, showQuickStart, safeTokens])
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-foreground px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-4xl font-bold mb-4 text-destructive">Initialization Error</h1>
+          <p className="text-muted-foreground mb-6">
+            The application encountered an error during startup. Please refresh the page.
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Refresh Page
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const handleSearch = async (query: string) => {
     if (isProcessing) return
@@ -138,7 +163,8 @@ function App() {
     const updatedToken = trackTokenPromotion(currentToken)
 
     setTokens((current) => {
-      const updated = (current || []).map((t) => {
+      const safe = current || []
+      const updated = safe.map((t) => {
         if (t.id === currentToken.id) {
           const pageIds = t.pageIds || []
           if (!pageIds.includes(page.id)) {
@@ -174,145 +200,164 @@ function App() {
   console.log('[INFINITY] Rendering view:', view)
   console.log('[INFINITY] siteConfig:', siteConfig)
 
-  if (!siteConfig) {
+  try {
+    if (!siteConfig) {
+      console.warn('[INFINITY] Waiting for siteConfig to initialize...')
+      return (
+        <div className="min-h-screen flex items-center justify-center text-foreground">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4 cosmic-glow">INFINITY</h1>
+            <p className="text-muted-foreground animate-pulse">Initializing...</p>
+          </div>
+        </div>
+      )
+    }
+
     return (
-      <div className="min-h-screen flex items-center justify-center text-foreground">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">INFINITY</h1>
-          <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen text-foreground relative">
+        <DebugInfo />
+        <Toaster position="top-center" theme="dark" />
+
+        <BrainResult />
+
+        {view === 'search' && (
+          <SearchIndex
+            onSearch={handleSearch}
+            isProcessing={isProcessing}
+          />
+        )}
+
+        {view === 'result' && currentResult && currentToken && (
+          <ResultPage
+            result={currentResult}
+            token={currentToken}
+            onBack={handleBackToSearch}
+            onPromote={handlePromote}
+          />
+        )}
+
+        {view === 'page' && currentPage && (
+          <BuiltPageView
+            page={currentPage}
+            allPages={safePages}
+            onBack={handleBackToSearch}
+            onPageUpdate={(p) =>
+              setPages((current) =>
+                (current || []).map((x) => (x.id === p.id ? p : x))
+              )
+            }
+            onExpandToken={(tokenId) => {
+              const token = safeTokens.find(t => t.id === tokenId)
+              if (token) {
+                setCurrentToken(token)
+                setView('tokenView')
+              }
+            }}
+            onNavigateToPage={(p) => {
+              setCurrentPage(p)
+            }}
+          />
+        )}
+
+        {view === 'index' && (
+          <PageIndex
+            pages={safePages}
+            onViewPage={(p) => {
+              setCurrentPage(p)
+              setView('page')
+            }}
+            onBack={handleBackToSearch}
+            onSearchArchives={() => setView('localSearch')}
+          />
+        )}
+
+        {view === 'localSearch' && (
+          <LocalSearch
+            tokens={safeTokens}
+            pages={safePages}
+            onViewToken={(t) => {
+              setCurrentToken(t)
+              setView('tokenView')
+            }}
+            onViewPage={(p) => {
+              setCurrentPage(p)
+              setView('page')
+            }}
+            onBack={handleBackToSearch}
+          />
+        )}
+
+        {view === 'tokenView' && currentToken && (
+          <TokenView
+            token={currentToken}
+            pages={safePages}
+            onBack={() => setView('localSearch')}
+            onViewPage={(p) => {
+              setCurrentPage(p)
+              setView('page')
+            }}
+            onTokenUpdate={(t) =>
+              setTokens((current) =>
+                (current || []).map((x) => (x.id === t.id ? t : x))
+              )
+            }
+            onExpandToken={(result) => {
+              setCurrentResult(result)
+              setIsExpanding(true)
+              setShowStructureSelection(true)
+            }}
+          />
+        )}
+
+        <StructureSelection
+          open={showStructureSelection}
+          defaultTitle={currentResult?.query}
+          onComplete={handleStructureSelection}
+          onCancel={() => setShowStructureSelection(false)}
+        />
+
+        <FeatureSelection
+          open={showFeatureSelection}
+          structure={selectedStructure || undefined}
+          onComplete={handleFeatureSelection}
+          onCancel={() => setShowFeatureSelection(false)}
+        />
+
+        <SiteConfigDialog
+          open={showSiteConfig}
+          config={siteConfig}
+          onClose={() => setShowSiteConfig(false)}
+          onSave={updateSiteConfig}
+        />
+
+        <QuickStartGuide
+          open={showQuickStart}
+          onClose={() => {
+            setShowQuickStart(false)
+            setHasSeenQuickStart(true)
+          }}
+          onStartDemo={() => {
+            setShowSiteConfig(true)
+          }}
+        />
+      </div>
+    )
+  } catch (error) {
+    console.error('[INFINITY] Render error:', error)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-foreground px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-4xl font-bold mb-4 text-destructive">Render Error</h1>
+          <p className="text-muted-foreground mb-6">
+            The application encountered an error while rendering. Please check the console for details.
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Refresh Page
+          </Button>
         </div>
       </div>
     )
   }
-
-  return (
-    <div className="min-h-screen text-foreground relative">
-      <Toaster position="top-center" theme="dark" />
-
-      <BrainResult />
-
-      {view === 'search' && (
-        <SearchIndex
-          onSearch={handleSearch}
-          isProcessing={isProcessing}
-        />
-      )}
-
-      {view === 'result' && currentResult && currentToken && (
-        <ResultPage
-          result={currentResult}
-          token={currentToken}
-          onBack={handleBackToSearch}
-          onPromote={handlePromote}
-        />
-      )}
-
-      {view === 'page' && currentPage && (
-        <BuiltPageView
-          page={currentPage}
-          allPages={pages || []}
-          onBack={handleBackToSearch}
-          onPageUpdate={(p) =>
-            setPages((current) =>
-              (current || []).map((x) => (x.id === p.id ? p : x))
-            )
-          }
-          onExpandToken={(tokenId) => {
-            const token = (tokens || []).find(t => t.id === tokenId)
-            if (token) {
-              setCurrentToken(token)
-              setView('tokenView')
-            }
-          }}
-          onNavigateToPage={(p) => {
-            setCurrentPage(p)
-          }}
-        />
-      )}
-
-      {view === 'index' && (
-        <PageIndex
-          pages={pages || []}
-          onViewPage={(p) => {
-            setCurrentPage(p)
-            setView('page')
-          }}
-          onBack={handleBackToSearch}
-          onSearchArchives={() => setView('localSearch')}
-        />
-      )}
-
-      {view === 'localSearch' && (
-        <LocalSearch
-          tokens={tokens || []}
-          pages={pages || []}
-          onViewToken={(t) => {
-            setCurrentToken(t)
-            setView('tokenView')
-          }}
-          onViewPage={(p) => {
-            setCurrentPage(p)
-            setView('page')
-          }}
-          onBack={handleBackToSearch}
-        />
-      )}
-
-      {view === 'tokenView' && currentToken && (
-        <TokenView
-          token={currentToken}
-          pages={pages || []}
-          onBack={() => setView('localSearch')}
-          onViewPage={(p) => {
-            setCurrentPage(p)
-            setView('page')
-          }}
-          onTokenUpdate={(t) =>
-            setTokens((current) =>
-              (current || []).map((x) => (x.id === t.id ? t : x))
-            )
-          }
-          onExpandToken={(result) => {
-            setCurrentResult(result)
-            setIsExpanding(true)
-            setShowStructureSelection(true)
-          }}
-        />
-      )}
-
-      <StructureSelection
-        open={showStructureSelection}
-        defaultTitle={currentResult?.query}
-        onComplete={handleStructureSelection}
-        onCancel={() => setShowStructureSelection(false)}
-      />
-
-      <FeatureSelection
-        open={showFeatureSelection}
-        structure={selectedStructure || undefined}
-        onComplete={handleFeatureSelection}
-        onCancel={() => setShowFeatureSelection(false)}
-      />
-
-      <SiteConfigDialog
-        open={showSiteConfig}
-        config={siteConfig}
-        onClose={() => setShowSiteConfig(false)}
-        onSave={updateSiteConfig}
-      />
-
-      <QuickStartGuide
-        open={showQuickStart}
-        onClose={() => {
-          setShowQuickStart(false)
-          setHasSeenQuickStart(true)
-        }}
-        onStartDemo={() => {
-          setShowSiteConfig(true)
-        }}
-      />
-    </div>
-  )
 }
 
 export default App
