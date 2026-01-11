@@ -200,32 +200,31 @@ function App() {
   console.log('[INFINITY] Rendering view:', view)
   console.log('[INFINITY] siteConfig:', siteConfig)
 
-  try {
-    if (!siteConfig) {
-      console.warn('[INFINITY] Waiting for siteConfig to initialize...')
-      return (
-        <div className="min-h-screen flex items-center justify-center text-foreground">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4 cosmic-glow">INFINITY</h1>
-            <p className="text-muted-foreground animate-pulse">Initializing...</p>
-          </div>
-        </div>
-      )
-    }
-
+  if (!siteConfig) {
+    console.warn('[INFINITY] Waiting for siteConfig to initialize...')
     return (
-      <div className="min-h-screen text-foreground relative">
-        <DebugInfo />
-        <Toaster position="top-center" theme="dark" />
+      <div className="min-h-screen flex items-center justify-center text-foreground bg-background">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4 cosmic-glow">INFINITY</h1>
+          <p className="text-muted-foreground animate-pulse">Initializing...</p>
+        </div>
+      </div>
+    )
+  }
 
-        <BrainResult />
+  return (
+    <div className="min-h-screen text-foreground relative bg-background">
+      <DebugInfo />
+      <Toaster position="top-center" theme="dark" />
 
-        {view === 'search' && (
-          <SearchIndex
-            onSearch={handleSearch}
-            isProcessing={isProcessing}
-          />
-        )}
+      <BrainResult />
+
+      {view === 'search' && (
+        <SearchIndex
+          onSearch={handleSearch}
+          isProcessing={isProcessing}
+        />
+      )}
 
         {view === 'result' && currentResult && currentToken && (
           <ResultPage
@@ -342,22 +341,6 @@ function App() {
         />
       </div>
     )
-  } catch (error) {
-    console.error('[INFINITY] Render error:', error)
-    return (
-      <div className="min-h-screen flex items-center justify-center text-foreground px-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-4xl font-bold mb-4 text-destructive">Render Error</h1>
-          <p className="text-muted-foreground mb-6">
-            The application encountered an error while rendering. Please check the console for details.
-          </p>
-          <Button onClick={() => window.location.reload()}>
-            Refresh Page
-          </Button>
-        </div>
-      </div>
-    )
-  }
 }
 
 export default App
