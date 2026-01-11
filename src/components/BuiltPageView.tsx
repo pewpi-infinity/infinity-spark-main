@@ -321,13 +321,6 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
     await handlePublish()
   }
 
-  const handleFeatureToggle = (feature: keyof PageFeatures) => {
-    setEditedFeatures((prev) => ({
-      ...prev,
-      [feature]: !prev[feature]
-    }))
-  }
-
   if (!isValidPage) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
