@@ -319,6 +319,61 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
   const handleRepublish = async () => {
     setShowUpdateDialog(false)
     await handlePublish()
+  }
+
+  const handleFeatureToggle = (feature: keyof PageFeatures) => {
+    setEditedFeatures((prev) => ({
+      ...prev,
+      [feature]: !prev[feature]
+    }))
+  }
+
+  if (!isValidPage) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold text-destructive">Page Not Found</h2>
+          <p className="text-muted-foreground">
+            The requested page could not be loaded
+          </p>
+          <Button onClick={onBack} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <ArrowLeft className="mr-2" size={20} />
+            Back to Search
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background px-4 py-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            onClick={onBack}
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="mr-2" size={20} />
+            Back
+          </Button>
+          <div className="flex gap-2">
+            {!isEditing && (
+              <Button
+                onClick={handleStartEdit}
+                variant="outline"
+                size="sm"
+              >
+                <PencilSimple className="mr-2" size={16} />
+                Edit Page
+              </Button>
+            )}
+            <Button
+              onClick={() => setShowHelpDialog(true)}
+              variant="outline"
+              size="sm"
+            >
+              <Question size={16} className="mr-2" />
               Publishing Help
             </Button>
           </div>
