@@ -212,13 +212,10 @@ function App() {
     <div className="relative min-h-screen">
       <Toaster position="top-center" />
 
-      {shouldShowSearch && (
+          isProcessing={isProcessing}
         <SearchIndex
           onSearch={handleSearch}
           isProcessing={isProcessing}
-        />
-      )}
-
       {view === 'result' && currentResult && currentToken && (
         <ResultPage
           result={currentResult}
@@ -228,11 +225,11 @@ function App() {
         />
       )}
 
-      {view === 'page' && currentPage && currentPage.id && (
-        <BuiltPageView
-          key={currentPage.id}
+        />entPage && currentPage.id && (
+      )}
+
           page={currentPage}
-          allPages={safePages}
+        <BuiltPageView
           onBack={handleBackToSearch}
           onPageUpdate={(p) => {
             setPages((current) =>
@@ -240,11 +237,11 @@ function App() {
             )
             if (currentPage && currentPage.id === p.id) {
               setCurrentPage(p)
-            }
+            )
           }}
           onExpandToken={(tokenId) => {
-            const token = safeTokens.find(t => t.id === tokenId)
-            if (token) {
+            }ns.find(t => t.id === tokenId)
+          }}
               setCurrentToken(token)
               setView('tokenView')
             }
@@ -256,23 +253,23 @@ function App() {
             }
           }}
         />
+            }
+          }}
+      {view === 'index' && (
       )}
 
-      {view === 'index' && (
-        <PageIndex
-          pages={safePages}
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
           }}
           onBack={handleBackToSearch}
           onSearchArchives={() => setView('localSearch')}
-        />
+          }}
       )}
 
-      {view === 'localSearch' && (
+        />&& (
         <LocalSearch
-          tokens={safeTokens}
+
           pages={safePages}
           onViewToken={(t) => {
             setCurrentToken(t)
@@ -280,48 +277,51 @@ function App() {
           }}
           onViewPage={(p) => {
             setCurrentPage(p)
-            setView('page')
+          }}
           }}
           onBack={handleBackToSearch}
         />
-      )}
+          }}
 
-      {view === 'tokenView' && currentToken && (
-        <TokenView
-          token={currentToken}
+        /> && currentToken && (
+      )}
+ken={currentToken}
           pages={safePages}
           onBack={() => setView('localSearch')}
-          onViewPage={(p) => {
+          token={currentToken}
             setCurrentPage(p)
             setView('page')
           }}
           onTokenUpdate={(t) =>
             setTokens((current) =>
-              (current || []).map((x) => (x.id === t.id ? t : x))
+          }}(x.id === t.id ? t : x))
             )
           }
           onExpandToken={(result) => {
             setCurrentResult(result)
-            setIsExpanding(true)
+          }g(true)
             setShowStructureSelection(true)
           }}
         />
       )}
 
       <StructureSelection
+      )}tureSelection}
+reSelection(false)}
+      <StructureSelection
         open={showStructureSelection}
-        onCancel={() => setShowStructureSelection(false)}
-        onComplete={handleStructureSelection}
-      />
-
+        onClose={() => setShowStructureSelection(false)}
+        onSelect={handleStructureSelection}
+      />open={showFeatureSelection}
+etShowFeatureSelection(false)}
       <FeatureSelection
         open={showFeatureSelection}
-        onCancel={() => setShowFeatureSelection(false)}
-        onComplete={handleFeatureSelection}
-        structure={selectedStructure || undefined}
+        onClose={() => setShowFeatureSelection(false)}
+        onSelect={handleFeatureSelection}
+        structure={selectedStructure}
       />
 
-      <SiteConfigDialog
+      <SiteConfigDialogonfig(false)}
         open={showSiteConfig}
         config={siteConfig}
         onClose={() => setShowSiteConfig(false)}
@@ -340,6 +340,3 @@ function App() {
       />
     </div>
   )
-}
-
-export default App
