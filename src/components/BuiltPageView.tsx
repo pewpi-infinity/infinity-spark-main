@@ -28,11 +28,9 @@ import {
   Info,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { publishPage } from '@/lib/publisher'
-import { getSiteConfig } from '@/lib/siteConfig'
+import { publishToInfinitySpark, getPublishedPageData } from '@/lib/infinityPublisher'
 import { trackPageView, trackPageShare, initializePageAnalytics } from '@/lib/analytics'
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
-import { PageFilesView } from '@/components/PageFilesView'
 import type { BuildPage } from '@/types'
 
 interface BuiltPageViewProps {
@@ -53,17 +51,7 @@ function generateSlug(title: string): string {
 export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps) {
   const [isPublishing, setIsPublishing] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
-  const [previewPath, setPreviewPath] = useState('')
   const [showHelpDialog, setShowHelpDialog] = useState(false)
-
-  useEffect(() => {
-    async function loadPreviewPath() {
-      const config = await getSiteConfig()
-      const slug = generateSlug(page.title)
-      setPreviewPath(`/${config.siteName}/pages/${slug}/index.html`)
-    }
-    loadPreviewPath()
-  }, [page.title])
 
   useEffect(() => {
     if (!page.analytics) {
@@ -94,39 +82,32 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
 
   const handlePublish = async () => {
     setIsPublishing(true)
-    toast.loading('Publishing page...')
+    const toastId = toast.loading('Publishing to INFINITY...')
 
     try {
-      const result = await publishPage(page)
+      const result = await publishToInfinitySpark(page)
 
       if (result.success && result.url) {
-        const publishStatus = result.status === 'published' ? 'published' : 'awaiting-build'
-        
         const updatedPage: BuildPage = {
           ...page,
-          published: result.status === 'published',
-          publishStatus,
+          published: false,
+          publishStatus: 'awaiting-build',
           url: result.url,
           publishedAt: Date.now(),
         }
 
         onPageUpdate(updatedPage)
 
-        toast.dismiss()
-        
-        if (result.status === 'published') {
-          toast.success('Page published successfully!')
-        } else {
-          toast.success('Page submitted for publishing', {
-            description: 'Awaiting GitHub Pages build (may take 2-3 minutes)'
-          })
-        }
+        toast.dismiss(toastId)
+        toast.success('Page submitted successfully!', {
+          description: 'Owner will deploy it to infinity-spark repo shortly'
+        })
       } else {
-        toast.dismiss()
+        toast.dismiss(toastId)
         toast.error(result.error || 'Failed to publish page')
       }
     } catch (error) {
-      toast.dismiss()
+      toast.dismiss(toastId)
       toast.error('Failed to publish page')
       console.error(error)
     } finally {
@@ -365,10 +346,6 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
             <AnalyticsDashboard analytics={page.analytics} type="page" />
           )}
 
-          {(page.published || page.publishStatus === 'awaiting-build') && (
-            <PageFilesView page={page} />
-          )}
-
           <Card className="bg-gradient-to-br from-accent/10 to-primary/5 border-accent/30">
             <CardContent className="pt-6">
               {!page.published && page.publishStatus !== 'awaiting-build' && (
@@ -385,8 +362,8 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
 
                   <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
                     <p className="text-sm text-muted-foreground mb-3">
-                      <strong className="text-foreground">Note:</strong> This app generates files in your browser. 
-                      You'll need to download and commit them manually to publish.
+                      <strong className="text-foreground">One-Click Publishing:</strong> Your page data will be sent to INFINITY. 
+                      The owner will deploy it to the infinity-spark repository where it will be hosted for free.
                     </p>
                     <Button
                       variant="link"
@@ -394,7 +371,7 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                       onClick={() => setShowHelpDialog(true)}
                       className="text-accent h-auto p-0"
                     >
-                      Click here for step-by-step instructions →
+                      Learn how this works →
                     </Button>
                   </div>
                   
@@ -404,8 +381,8 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                         1
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">File Structure Created</p>
-                        <p className="text-xs text-muted-foreground font-mono mt-0.5">{previewPath || 'Loading...'}</p>
+                        <p className="font-semibold">Submit to INFINITY</p>
+                        <p className="text-xs text-muted-foreground">One click sends your page data</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
@@ -413,8 +390,8 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                         2
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">Download Files</p>
-                        <p className="text-xs text-muted-foreground">Then commit to your repo manually</p>
+                        <p className="font-semibold">Owner Deploys</p>
+                        <p className="text-xs text-muted-foreground">Pushed to infinity-spark repo</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
@@ -422,8 +399,8 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                         3
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">GitHub Pages Build</p>
-                        <p className="text-xs text-muted-foreground">Wait 2-3 minutes for deployment</p>
+                        <p className="font-semibold">Live on Web</p>
+                        <p className="text-xs text-muted-foreground">Hosted free at c13b0.github.io/infinity-spark</p>
                       </div>
                     </div>
                   </div>
@@ -435,11 +412,11 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg h-auto font-bold shadow-lg hover:shadow-xl transition-all"
                   >
                     <Rocket className="mr-3" size={24} />
-                    {isPublishing ? 'Generating Files...' : 'Publish Live Now'}
+                    {isPublishing ? 'Submitting...' : 'Publish to INFINITY'}
                   </Button>
                   
                   <p className="text-xs text-muted-foreground">
-                    Generates files for download - you'll commit them manually
+                    One-click submission - owner deploys to infinity-spark
                   </p>
                 </div>
               )}
@@ -450,37 +427,28 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/20 mb-4">
                       <div className="animate-spin h-10 w-10 border-4 border-accent border-t-transparent rounded-full"></div>
                     </div>
-                    <h3 className="text-2xl font-bold">Files Generated</h3>
+                    <h3 className="text-2xl font-bold">Submitted to INFINITY</h3>
                     <p className="text-muted-foreground max-w-md mx-auto">
-                      Page files are ready in browser storage. Download and commit them to your repository to publish.
+                      Your page has been submitted. The owner will deploy it to the infinity-spark repository shortly.
                     </p>
                   </div>
 
                   <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-accent mb-2">⚠️ Action Required</p>
-                    <p className="text-sm text-foreground/90 mb-3">
-                      This app cannot automatically commit files to GitHub. You must download and commit them manually.
+                    <p className="text-sm font-semibold text-accent mb-2">✨ Awaiting Deployment</p>
+                    <p className="text-sm text-foreground/90">
+                      Your page data is stored and ready. The repository owner will push it to infinity-spark when they next deploy updates.
                     </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowHelpDialog(true)}
-                      className="w-full"
-                    >
-                      <Question className="mr-2" size={16} />
-                      Show Publishing Instructions
-                    </Button>
                   </div>
 
                   <div className="bg-card/70 backdrop-blur-sm rounded-xl p-5 border border-muted space-y-4">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Status:</span>
-                        <span className="font-semibold text-muted-foreground">Awaiting Commit</span>
+                        <span className="font-semibold text-muted-foreground">Pending Owner Deployment</span>
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Expected URL after commit:</span>
+                          <span>Expected URL after deployment:</span>
                         </div>
                         <div className="bg-card/50 rounded-lg p-3 font-mono text-xs break-all">
                           {page.url}
@@ -519,7 +487,7 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
 
                   <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
                     <p className="text-sm text-center text-muted-foreground">
-                      💡 <strong>Tip:</strong> Scroll down to see the file structure and download button.
+                      💡 <strong>Tip:</strong> Check back later or click "Check if Live" to see if it's been deployed.
                     </p>
                   </div>
                 </div>
@@ -625,33 +593,33 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
               <Info className="text-accent" size={28} />
-              How Publishing Works
+              How INFINITY Publishing Works
             </DialogTitle>
             <DialogDescription className="text-base">
-              Understanding the manual commit process
+              Simple one-click publishing to infinity-spark
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 text-sm">
             <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
-              <p className="font-semibold text-accent mb-2">⚠️ Important: Manual Commit Required</p>
+              <p className="font-semibold text-accent mb-2">✨ No GitHub Knowledge Required</p>
               <p className="text-foreground/90">
-                This is a browser-based app that <strong>cannot automatically write files to GitHub</strong>. 
-                When you click "Publish", files are generated in your browser storage - you must download and commit them manually.
+                This is a <strong>one-click publishing system</strong>. You don't need to know about commits, repos, or GitHub Pages. 
+                Just click "Publish to INFINITY" and your page will be deployed by the owner.
               </p>
             </div>
 
             <div>
-              <h3 className="font-bold text-lg mb-3">📋 Publishing Process</h3>
+              <h3 className="font-bold text-lg mb-3">📋 How It Works</h3>
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
                     1
                   </div>
                   <div>
-                    <p className="font-semibold">Click "Publish Live Now"</p>
+                    <p className="font-semibold">You Click Publish</p>
                     <p className="text-muted-foreground text-xs mt-1">
-                      Generates HTML and metadata in browser storage
+                      Your page content is saved securely in the app's storage
                     </p>
                   </div>
                 </div>
@@ -661,9 +629,9 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     2
                   </div>
                   <div>
-                    <p className="font-semibold">Click "Download Page Files"</p>
+                    <p className="font-semibold">Owner Gets Notification</p>
                     <p className="text-muted-foreground text-xs mt-1">
-                      Downloads <code className="bg-card px-1 rounded">index.html</code> and <code className="bg-card px-1 rounded">page.json</code>
+                      The infinity-spark repo owner sees your submission
                     </p>
                   </div>
                 </div>
@@ -673,9 +641,9 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     3
                   </div>
                   <div>
-                    <p className="font-semibold">Create Folder Structure</p>
+                    <p className="font-semibold">Automatic Deployment</p>
                     <p className="text-muted-foreground text-xs mt-1">
-                      In your repo, create: <code className="bg-card px-1 rounded text-[10px]">{previewPath || '...'}</code>
+                      Owner runs a script that deploys all pending pages to c13b0.github.io/infinity-spark
                     </p>
                   </div>
                 </div>
@@ -685,23 +653,9 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     4
                   </div>
                   <div>
-                    <p className="font-semibold">Commit & Push</p>
-                    <div className="text-muted-foreground text-xs mt-1 bg-card p-2 rounded font-mono space-y-1">
-                      <div>git add &lt;site-name&gt;/pages/&lt;slug&gt;/</div>
-                      <div>git commit -m "Add page"</div>
-                      <div>git push origin main</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
-                    5
-                  </div>
-                  <div>
-                    <p className="font-semibold">Wait for GitHub Pages</p>
+                    <p className="font-semibold">Your Page Goes Live</p>
                     <p className="text-muted-foreground text-xs mt-1">
-                      Build takes 2-3 minutes. Click "Check if Live" to verify.
+                      Page is hosted free on GitHub Pages at your personal URL
                     </p>
                   </div>
                 </div>
@@ -711,37 +665,33 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
             <Separator />
 
             <div>
-              <h3 className="font-bold text-lg mb-3">🔧 GitHub Pages Setup</h3>
-              <p className="text-muted-foreground mb-2">
-                Ensure your repository has GitHub Pages enabled:
-              </p>
-              <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                <li>Go to repo Settings → Pages</li>
-                <li>Source: "GitHub Actions"</li>
-                <li>Workflow file already exists: <code className="bg-card px-1 rounded">.github/workflows/pages.yml</code></li>
-              </ol>
+              <h3 className="font-bold text-lg mb-3">🎯 Key Benefits</h3>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li>No GitHub account or technical knowledge needed</li>
+                <li>No manual file downloads or commits</li>
+                <li>Free hosting on GitHub Pages</li>
+                <li>Your own permanent URL</li>
+                <li>Owner handles all the technical deployment</li>
+              </ul>
             </div>
 
             <Separator />
 
             <div>
-              <h3 className="font-bold text-lg mb-3">❓ Why Manual?</h3>
-              <p className="text-muted-foreground">
-                This app runs entirely in your browser with no backend server. It physically cannot:
+              <h3 className="font-bold text-lg mb-3">⏱️ Timeline</h3>
+              <p className="text-muted-foreground mb-2">
+                After you click publish:
               </p>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground mt-2">
-                <li>Write files directly to GitHub</li>
-                <li>Create commits on your behalf</li>
-                <li>Push changes automatically</li>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li>Your page data is saved instantly</li>
+                <li>Owner typically deploys within 24-48 hours</li>
+                <li>You'll receive your live URL at: <code className="bg-card px-1 rounded text-[10px]">c13b0.github.io/infinity-spark/[username]/[page-slug]</code></li>
               </ul>
-              <p className="text-muted-foreground mt-2">
-                The "Publish" button generates the files and shows you where they should go - but you maintain full control over your repository.
-              </p>
             </div>
 
             <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
               <p className="text-xs text-center">
-                📖 For complete instructions, see <code className="bg-card px-1 rounded">PUBLISHING_GUIDE.md</code> in the repository
+                🚀 This system removes all complexity from web publishing - just create and click!
               </p>
             </div>
           </div>

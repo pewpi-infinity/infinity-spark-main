@@ -69,19 +69,19 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Progression**: Choices collected → builder determines required assets → generates/retrieves files → assembles page structure → page becomes accessible as draft
 - **Success criteria**: Generated pages are functional and include only selected features
 
-### Real Page Publication System
-- **Functionality**: Converts draft pages into live HTML files with permanent URLs through actual file creation under personalized site identities, implements mandatory 90-second minimum wait before verification, retries verification up to 3 minutes, provides manual retry mechanism
-- **Purpose**: Transforms ephemeral content into real, shareable web pages with persistent URLs under user's personalized site name with proper build verification
-- **Trigger**: User clicks "Publish Page" button on built page
-- **Progression**: Publish initiated → site config retrieved → HTML file generated with all selected features → metadata JSON created → page data stored in KV with personalized file structure (/{SiteName}/pages/{slug}/index.html) → immediate verification attempt (expected to fail) → if URL returns 200, marked as "Published" immediately → if URL returns 404, marked as "Awaiting Pages Build" → background verification waits 90 seconds → retries verification with 3 attempts → if still failing at 180 seconds, triggers rebuild by touching .gitpages-rebuild → user sees "Check if Live Now" button for manual verification → only when verified does status change to "Published"
-- **Success criteria**: Published pages never show "Published" status until URL returns 200, "Awaiting Pages Build" state shows spinner and clear messaging about 90 second to 3 minute wait time, manual retry button available, proper /{SiteName}/pages/{slug}/index.html structure, live link only shown when verified
+### One-Click INFINITY Publishing System
+- **Functionality**: Simple submission system that sends page data to KV storage for owner deployment to infinity-spark repository
+- **Purpose**: Removes all technical complexity from users - no GitHub knowledge, commits, or manual file handling required
+- **Trigger**: User clicks "Publish to INFINITY" button on built page
+- **Progression**: Publish initiated → user authenticated → page HTML generated → data stored in KV with user info → page registered in central registry → user sees "Submitted" status with expected URL → owner periodically deploys from registry → pages go live at c13b0.github.io/infinity-spark/[username]/[slug]/
+- **Success criteria**: Users never see GitHub terminology, no file downloads required, one-click submission works, clear messaging about owner deployment process, expected URL shown immediately
 
-### Site Configuration System
-- **Functionality**: Allows users to configure their personalized site identity including site name, owner name, GitHub username, and repository name, automatically prompts on first use if not configured
-- **Purpose**: Enables personalized publishing where pages live under user's chosen site name (e.g., "Pixie", "Kris") rather than generic "infinity-spark" branding
-- **Trigger**: User clicks gear icon on search page, or automatically opens on first app load if site name is "Untitled"
-- **Progression**: Configuration dialog opens → user enters site name, owner name, GitHub username, repo name → preview URL shown with personalized path → configuration saved to KV → all future pages publish to /{SiteName}/pages/ structure
-- **Success criteria**: Site name is visible in all published URLs and page footers, no "infinity-spark" or "INFINITY" branding visible to end users viewing published pages, configuration persists across sessions, preview path accurately reflects final URL structure, auto-prompts new users
+### Owner Deployment Process
+- **Functionality**: Repository owner extracts pending pages from KV storage and deploys to infinity-spark repo
+- **Purpose**: Centralizes hosting and removes individual user repository requirements  
+- **Trigger**: Owner runs deployment process (manual or scheduled)
+- **Progression**: Owner accesses KV registry → exports pending pages → creates directory structure in infinity-spark → writes HTML files → commits and pushes → GitHub Pages builds → pages go live
+- **Success criteria**: Clear documentation for owner, efficient batch deployment possible, pages organized by username
 
 ### Secondary Page Index
 - **Functionality**: Maintains searchable catalog of built pages showing draft vs published status
@@ -145,9 +145,9 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Failed Content Generation** - Gracefully show error, still mint token for query attempt
 - **No Feature Selection** - If user declines all enhancements, create minimal content-only page based on structure
 - **Publication Failure** - Show error toast, keep page in draft state, allow retry
-- **URL Verification Failure** - Mark page as "Awaiting Pages Build" instead of "Published", show informative message about GitHub Pages build time (90 seconds to 3 minutes)
-- **Immediate 404 on Published URL** - System expects this initially, shows "Awaiting Pages Build" with spinner and wait time
-- **404 After 90 Seconds** - System automatically waits and retries verification 3 times with delays
+- **Awaiting Deployment Status** - Show spinner with clear message that owner will deploy, provide "Check if Live" button
+- **User Checks Before Deployment** - "Check if Live" returns not found, inform user to check back later
+- **Page Goes Live** - Verification succeeds, status changes to "Published", live URL buttons enabled
 - **404 After 3 Minutes** - System triggers rebuild by touching .gitpages-rebuild file, continues showing "Awaiting Pages Build"
 - **Manual Verification Retry** - User can click "Check if Live Now" button to manually trigger verification check at any time
 - **False Positive Published Status** - Only show "Published" status when URL actually returns 200, never assume based on time alone

@@ -1,7 +1,3 @@
-// src/mongoose/web.ts
-// Zero-network web context to prevent fetch/localhost failures.
-// Stable on GitHub Pages.
-
 export type WebSource = { title: string; url: string; snippet: string }
 
 export async function fetchWebContext(query: string): Promise<{
@@ -9,8 +5,30 @@ export async function fetchWebContext(query: string): Promise<{
   sources: WebSource[]
 }> {
   const q = (query || '').trim()
-  return {
-    summary: q ? `Context disabled (offline-safe). Query: ${q}` : 'Context disabled.',
-    sources: []
+  
+  if (!q) {
+    return {
+      summary: 'No query provided',
+      sources: []
+    }
+  }
+
+  try {
+    const promptText = `Provide a brief contextual summary (2-3 sentences) about: ${q}
+    
+Focus on what would be most useful for someone researching this topic.`
+
+    const summary = await spark.llm(promptText, 'gpt-4o-mini', false)
+    
+    return {
+      summary: summary.trim(),
+      sources: []
+    }
+  } catch (error) {
+    console.error('[fetchWebContext error]', error)
+    return {
+      summary: `Research context for: ${q}`,
+      sources: []
+    }
   }
 }

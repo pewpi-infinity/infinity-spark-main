@@ -1,0 +1,45 @@
+#!/bin/bash
+# INFINITY Deploy Script
+# Fetches all published pages from KV storage and deploys them to infinity-spark repo
+
+echo "🚀 INFINITY Page Deployment Script"
+echo "===================================="
+echo ""
+
+# This script should be run by the owner to deploy user-submitted pages
+# It reads from the Spark KV storage and creates the necessary files
+
+echo "📋 Instructions for Owner:"
+echo ""
+echo "1. Run this Spark app and open the browser console"
+echo "2. Execute this code in the console to export all page data:"
+echo ""
+echo "   const registry = await spark.kv.get('infinity-page-registry') || []"
+echo "   console.log(JSON.stringify(registry, null, 2))"
+echo ""
+echo "3. For each page ID, export the HTML:"
+echo ""
+echo "   const pageId = 'PAGE-XXX'"
+echo "   const data = await spark.kv.get(\`infinity-published-\${pageId}\`)"
+echo "   console.log(JSON.stringify(data, null, 2))"
+echo ""
+echo "4. Create directory structure in infinity-spark repo:"
+echo "   mkdir -p [username]/[slug]/"
+echo ""
+echo "5. Write the HTML to index.html:"
+echo "   echo \"[html content]\" > [username]/[slug]/index.html"
+echo ""
+echo "6. Commit and push to infinity-spark:"
+echo "   git add ."
+echo "   git commit -m \"Deploy pages for [date]\""
+echo "   git push origin main"
+echo ""
+echo "===================================="
+echo ""
+echo "💡 Future Enhancement: Build a Node.js script that:"
+echo "   - Connects to the Spark KV store"
+echo "   - Automatically extracts all pending pages"
+echo "   - Creates the directory structure"
+echo "   - Writes all files"
+echo "   - Commits and pushes automatically"
+echo ""
