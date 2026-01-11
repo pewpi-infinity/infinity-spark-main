@@ -191,6 +191,7 @@ function App() {
       {view === 'page' && currentPage && (
         <BuiltPageView
           page={currentPage}
+          allPages={pages || []}
           onBack={handleBackToSearch}
           onPageUpdate={(p) =>
             setPages((current) =>
@@ -203,6 +204,9 @@ function App() {
               setCurrentToken(token)
               setView('tokenView')
             }
+          }}
+          onNavigateToPage={(p) => {
+            setCurrentPage(p)
           }}
         />
       )}

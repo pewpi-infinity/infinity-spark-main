@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TokenDisplay } from '@/components/TokenDisplay'
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
-import { ArrowLeft, MagnifyingGlass, Sparkle, File } from '@phosphor-icons/react'
+import { TokenNetworkGraph } from '@/components/TokenNetworkGraph'
+import { TokenLeaderboard } from '@/components/TokenLeaderboard'
+import { ArrowLeft, MagnifyingGlass, Sparkle, File, Network, Trophy } from '@phosphor-icons/react'
 import type { Token, BuildPage } from '@/types'
 import { searchTokens, searchPages } from '@/lib/localSearch'
 
@@ -18,7 +20,7 @@ interface LocalSearchProps {
   onBack: () => void
 }
 
-type FilterType = 'all' | 'tokens' | 'pages'
+type FilterType = 'all' | 'tokens' | 'pages' | 'network' | 'leaderboard'
 
 export function LocalSearch({ tokens, pages, onViewToken, onViewPage, onBack }: LocalSearchProps) {
   const [query, setQuery] = useState('')
@@ -68,17 +70,27 @@ export function LocalSearch({ tokens, pages, onViewToken, onViewPage, onBack }: 
           </div>
 
           <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
-            <TabsList>
-              <TabsTrigger value="all">
-                All ({tokens.length + pages.length})
-              </TabsTrigger>
-              <TabsTrigger value="tokens">
-                Tokens ({tokens.length})
-              </TabsTrigger>
-              <TabsTrigger value="pages">
-                Pages ({pages.length})
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto mb-2 -mx-4 px-4">
+              <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-5">
+                <TabsTrigger value="all" className="flex-shrink-0">
+                  All
+                </TabsTrigger>
+                <TabsTrigger value="tokens" className="flex-shrink-0">
+                  Tokens
+                </TabsTrigger>
+                <TabsTrigger value="pages" className="flex-shrink-0">
+                  Pages
+                </TabsTrigger>
+                <TabsTrigger value="network" className="flex-shrink-0">
+                  <Network size={16} className="mr-1" />
+                  Network
+                </TabsTrigger>
+                <TabsTrigger value="leaderboard" className="flex-shrink-0">
+                  <Trophy size={16} className="mr-1" />
+                  Leaderboard
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="all" className="space-y-6 mt-6">
               {showTokens && filteredTokens.length > 0 && (
@@ -238,6 +250,23 @@ export function LocalSearch({ tokens, pages, onViewToken, onViewPage, onBack }: 
                   </CardContent>
                 </Card>
               )}
+            </TabsContent>
+
+            <TabsContent value="network" className="mt-6">
+              <TokenNetworkGraph
+                tokens={tokens}
+                pages={pages}
+                onTokenClick={onViewToken}
+                onPageClick={onViewPage}
+              />
+            </TabsContent>
+
+            <TabsContent value="leaderboard" className="mt-6">
+              <TokenLeaderboard
+                tokens={tokens}
+                pages={pages}
+                onTokenClick={onViewToken}
+              />
             </TabsContent>
           </Tabs>
         </div>

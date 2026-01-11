@@ -42,20 +42,20 @@ export function SearchIndex({ onSearch, onViewArchives, onViewPages, onOpenSetti
   const showExamples = !hasTokens && !hasPages
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative">
       {onOpenSettings && (
         <Button
           variant="ghost"
           size="icon"
           onClick={onOpenSettings}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10"
         >
           <Gear size={24} />
         </Button>
       )}
       
       <div className="w-full max-w-2xl">
-        <h1 className="text-6xl md:text-7xl font-bold text-center mb-16 tracking-tight">
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-center mb-12 sm:mb-16 tracking-tight">
           INFINITY
         </h1>
         
@@ -67,23 +67,24 @@ export function SearchIndex({ onSearch, onViewArchives, onViewPages, onOpenSetti
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search for anything..."
-              className="h-16 text-2xl px-6 pr-16 cosmic-glow bg-card/50 backdrop-blur-sm border-border/50 focus:border-accent transition-all"
+              className="h-14 sm:h-16 text-lg sm:text-2xl px-4 sm:px-6 pr-14 sm:pr-16 cosmic-glow bg-card/50 backdrop-blur-sm border-border/50 focus:border-accent transition-all"
               disabled={isProcessing}
             />
             <Button
               type="submit"
               size="icon"
-              className="absolute right-2 top-2 h-12 w-12 bg-accent hover:bg-accent/90 text-accent-foreground"
+              className="absolute right-2 top-2 h-10 w-10 sm:h-12 sm:w-12 bg-accent hover:bg-accent/90 text-accent-foreground"
               disabled={isProcessing || !query.trim()}
             >
-              <MagnifyingGlass size={24} weight="bold" />
+              <MagnifyingGlass size={20} className="sm:hidden" weight="bold" />
+              <MagnifyingGlass size={24} className="hidden sm:block" weight="bold" />
             </Button>
           </div>
         </form>
 
         {showExamples && (
-          <div className="mt-8 text-center space-y-4">
-            <p className="text-muted-foreground text-sm flex items-center justify-center gap-2">
+          <div className="mt-6 sm:mt-8 text-center space-y-4">
+            <p className="text-muted-foreground text-xs sm:text-sm flex items-center justify-center gap-2">
               <Sparkle size={16} className="text-accent" />
               Try searching for something to create your first token
             </p>
@@ -92,7 +93,7 @@ export function SearchIndex({ onSearch, onViewArchives, onViewPages, onOpenSetti
                 <Badge
                   key={index}
                   variant="outline"
-                  className="cursor-pointer hover:bg-accent/10 hover:border-accent transition-colors px-3 py-1.5"
+                  className="cursor-pointer hover:bg-accent/10 hover:border-accent transition-colors px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm"
                   onClick={() => handleExampleClick(example)}
                 >
                   {example}
@@ -103,12 +104,12 @@ export function SearchIndex({ onSearch, onViewArchives, onViewPages, onOpenSetti
         )}
 
         {showArchiveButtons && (
-          <div className="flex gap-3 justify-center mt-6">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
             {onViewArchives && (hasTokens || hasPages) && (
               <Button
                 variant="outline"
                 onClick={onViewArchives}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto"
               >
                 <MagnifyingGlassPlus size={20} />
                 Search Archives
@@ -118,7 +119,7 @@ export function SearchIndex({ onSearch, onViewArchives, onViewPages, onOpenSetti
               <Button
                 variant="outline"
                 onClick={onViewPages}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto"
               >
                 <Files size={20} />
                 View Pages

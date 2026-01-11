@@ -6,8 +6,15 @@
     @apply border-border
   }
   
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
   body {
     font-family: 'Space Grotesk', system-ui, sans-serif;
+    overflow-x: hidden;
   }
   
   .font-mono {

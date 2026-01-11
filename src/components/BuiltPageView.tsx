@@ -36,9 +36,11 @@ import type { BuildPage } from '@/types'
 
 interface BuiltPageViewProps {
   page: BuildPage
+  allPages?: BuildPage[]
   onBack: () => void
   onPageUpdate: (updatedPage: BuildPage) => void
   onExpandToken?: (tokenId: string) => void
+  onNavigateToPage?: (page: BuildPage) => void
 }
 
 function generateSlug(title: string): string {
@@ -50,10 +52,14 @@ function generateSlug(title: string): string {
     .trim()
 }
 
-export function BuiltPageView({ page, onBack, onPageUpdate, onExpandToken }: BuiltPageViewProps) {
+export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExpandToken, onNavigateToPage }: BuiltPageViewProps) {
   const [isPublishing, setIsPublishing] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [showHelpDialog, setShowHelpDialog] = useState(false)
+
+  const relatedPages = allPages.filter(p => 
+    p.tokenId === page.tokenId && p.id !== page.id
+  )
 
   useEffect(() => {
     if (!page.analytics) {
@@ -346,6 +352,68 @@ export function BuiltPageView({ page, onBack, onPageUpdate, onExpandToken }: Bui
 
           {page.analytics && (
             <AnalyticsDashboard analytics={page.analytics} type="page" />
+          )}
+
+          {relatedPages.length > 0 && (
+            <Card className="bg-card/50 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <NavigationArrow size={24} className="text-accent" />
+                  Related Pages from Same Token
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {relatedPages.length} {relatedPages.length === 1 ? 'page' : 'pages'} connected to this token
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3">
+                  {relatedPages.map((relatedPage) => (
+                    <Card
+                      key={relatedPage.id}
+                      className="bg-card/30 border-border/50 hover:border-accent/30 transition-all cursor-pointer"
+                      onClick={() => onNavigateToPage?.(relatedPage)}
+                    >
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <h4 className="font-semibold truncate">{relatedPage.title}</h4>
+                              {relatedPage.published ? (
+                                <Badge variant="outline" className="bg-accent/20 text-accent border-accent/30 flex-shrink-0">
+                                  <CheckCircle size={12} className="mr-1" weight="fill" />
+                                  Live
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="flex-shrink-0">
+                                  Draft
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                              {relatedPage.content.substring(0, 120)}...
+                            </p>
+                            {relatedPage.url && relatedPage.published && (
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  window.open(relatedPage.url, '_blank')
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs h-7 text-accent hover:text-accent"
+                              >
+                                <LinkIcon className="mr-1" size={12} />
+                                Open Live Page
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           <Card className="bg-gradient-to-br from-accent/10 to-primary/5 border-accent/30">
