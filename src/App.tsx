@@ -278,6 +278,8 @@ function App() {
         onSave={updateSiteConfig}
       />
 
+      <QuickStartGuide
+        open={showQuickStart}
         onClose={() => {
           setShowQuickStart(false)
           setHasSeenQuickStart(true)
