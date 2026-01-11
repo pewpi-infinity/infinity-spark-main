@@ -260,6 +260,7 @@ function App() {
       {view === 'index' && (
         <PageIndex
           pages={safePages}
+          tokens={safeTokens}
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
@@ -308,23 +309,19 @@ function App() {
       )}
 
       <StructureSelection
-        open={showStructureSelection}
-        defaultTitle={customPageTitle}
-        onComplete={handleStructureSelection}
-        onCancel={() => setShowStructureSelection(false)}
       />
 
       <FeatureSelection
-        open={showFeatureSelection}
-        structure={selectedStructure || undefined}
-        onComplete={handleFeatureSelection}
-        onCancel={() => setShowFeatureSelection(false)}
+      />
+FeatureSelection(false)}
+        onSelect={handleFeatureSelection}
+        structure={selectedStructure}
       />
 
       <SiteConfigDialog
         open={showSiteConfig}
         config={siteConfig}
-        onClose={() => setShowSiteConfig(false)}
+      <SiteConfigDialog
         onSave={updateSiteConfig}
       />
 
@@ -340,6 +337,9 @@ function App() {
       />
     </div>
   )
+}
+
+export default App
 }
 
 export default App
