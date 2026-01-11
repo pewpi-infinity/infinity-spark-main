@@ -40,8 +40,8 @@ function App() {
   const [showQuickStart, setShowQuickStart] = useState(false)
   const [isExpanding, setIsExpanding] = useState(false)
 
-  const [tokens, setTokens, _deleteTokens] = useKV<Token[]>('infinity-tokens', [])
-  const [pages, setPages, _deletePages] = useKV<BuildPage[]>('infinity-pages', [])
+  const [tokens, setTokens] = useKV<Token[]>('infinity-tokens', [])
+  const [pages, setPages] = useKV<BuildPage[]>('infinity-pages', [])
   const [hasSeenQuickStart, setHasSeenQuickStart] = useKV<boolean>('has-seen-quickstart', false)
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
