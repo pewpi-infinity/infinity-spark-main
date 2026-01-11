@@ -24,9 +24,13 @@ export function PageFilesView({ page }: PageFilesViewProps) {
         a.click()
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
+        
+        await new Promise(resolve => setTimeout(resolve, 100))
       }
       
-      toast.success('Files downloaded successfully')
+      toast.success('Files downloaded!', {
+        description: 'Now commit them to your repo to publish'
+      })
     } catch (error) {
       toast.error('Failed to download files')
       console.error(error)
@@ -44,6 +48,13 @@ export function PageFilesView({ page }: PageFilesViewProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="bg-accent/10 border border-accent/30 rounded-lg p-3">
+          <p className="text-sm font-semibold text-accent mb-1">⚠️ Manual Commit Required</p>
+          <p className="text-xs text-muted-foreground">
+            Files are generated in browser storage. Download them and commit to your repo for the page to go live.
+          </p>
+        </div>
+
         <div className="space-y-2 font-mono text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
             <span className="text-accent">📁</span> /pages

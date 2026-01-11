@@ -4,6 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   ArrowLeft,
   ChartBar,
   Image,
@@ -17,6 +24,8 @@ import {
   Link as LinkIcon,
   CheckCircle,
   ShareNetwork,
+  Question,
+  Info,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { publishPage } from '@/lib/publisher'
@@ -45,6 +54,7 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
   const [isPublishing, setIsPublishing] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [previewPath, setPreviewPath] = useState('')
+  const [showHelpDialog, setShowHelpDialog] = useState(false)
 
   useEffect(() => {
     async function loadPreviewPath() {
@@ -208,14 +218,25 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={onBack}
-          className="mb-6 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="mr-2" size={20} />
-          Back to Search
-        </Button>
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="mr-2" size={20} />
+            Back to Search
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHelpDialog(true)}
+            className="text-muted-foreground"
+          >
+            <Question className="mr-2" size={16} />
+            Publishing Help
+          </Button>
+        </div>
 
         <div className="space-y-6">
           <Card className="bg-card/50 backdrop-blur-sm border-accent/30">
@@ -358,8 +379,23 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     </div>
                     <h3 className="text-2xl font-bold">Ready to Publish</h3>
                     <p className="text-muted-foreground max-w-md mx-auto">
-                      Transform this page into a permanent, shareable website with its own URL
+                      Generate page files and prepare for GitHub Pages deployment
                     </p>
+                  </div>
+
+                  <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      <strong className="text-foreground">Note:</strong> This app generates files in your browser. 
+                      You'll need to download and commit them manually to publish.
+                    </p>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => setShowHelpDialog(true)}
+                      className="text-accent h-auto p-0"
+                    >
+                      Click here for step-by-step instructions →
+                    </Button>
                   </div>
                   
                   <div className="bg-card/70 backdrop-blur-sm rounded-xl p-5 border border-accent/20 space-y-3">
@@ -377,8 +413,8 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                         2
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">GitHub Pages Hosting</p>
-                        <p className="text-xs text-muted-foreground">Live URL generated and verified</p>
+                        <p className="font-semibold">Download Files</p>
+                        <p className="text-xs text-muted-foreground">Then commit to your repo manually</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
@@ -386,8 +422,8 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                         3
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">Search Engine Ready</p>
-                        <p className="text-xs text-muted-foreground">Metadata and tags optimized</p>
+                        <p className="font-semibold">GitHub Pages Build</p>
+                        <p className="text-xs text-muted-foreground">Wait 2-3 minutes for deployment</p>
                       </div>
                     </div>
                   </div>
@@ -399,11 +435,11 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg h-auto font-bold shadow-lg hover:shadow-xl transition-all"
                   >
                     <Rocket className="mr-3" size={24} />
-                    {isPublishing ? 'Publishing...' : 'Publish Live Now'}
+                    {isPublishing ? 'Generating Files...' : 'Generate Page Files'}
                   </Button>
                   
                   <p className="text-xs text-muted-foreground">
-                    Publishing may take 2-3 minutes for GitHub Pages to build
+                    Files will be created in browser storage - download and commit to publish
                   </p>
                 </div>
               )}
@@ -414,21 +450,37 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/20 mb-4">
                       <div className="animate-spin h-10 w-10 border-4 border-accent border-t-transparent rounded-full"></div>
                     </div>
-                    <h3 className="text-2xl font-bold">Publishing in Progress</h3>
+                    <h3 className="text-2xl font-bold">Files Generated</h3>
                     <p className="text-muted-foreground max-w-md mx-auto">
-                      Your page is being built on GitHub Pages. This typically completes in 90 seconds to 3 minutes.
+                      Page files are ready in browser storage. Download and commit them to your repository to publish.
                     </p>
+                  </div>
+
+                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-accent mb-2">⚠️ Action Required</p>
+                    <p className="text-sm text-foreground/90 mb-3">
+                      This app cannot automatically commit files to GitHub. You must download and commit them manually.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowHelpDialog(true)}
+                      className="w-full"
+                    >
+                      <Question className="mr-2" size={16} />
+                      Show Publishing Instructions
+                    </Button>
                   </div>
 
                   <div className="bg-card/70 backdrop-blur-sm rounded-xl p-5 border border-muted space-y-4">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Status:</span>
-                        <span className="font-semibold text-accent">Building...</span>
+                        <span className="font-semibold text-muted-foreground">Awaiting Commit</span>
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Page URL:</span>
+                          <span>Expected URL after commit:</span>
                         </div>
                         <div className="bg-card/50 rounded-lg p-3 font-mono text-xs break-all">
                           {page.url}
@@ -467,7 +519,7 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
 
                   <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
                     <p className="text-sm text-center text-muted-foreground">
-                      💡 <strong>Tip:</strong> You can leave this page. The verification happens automatically in the background.
+                      💡 <strong>Tip:</strong> Scroll down to see the file structure and download button.
                     </p>
                   </div>
                 </div>
@@ -567,6 +619,134 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
           </Card>
         </div>
       </div>
+
+      <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Info className="text-accent" size={28} />
+              How Publishing Works
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Understanding the manual commit process
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 text-sm">
+            <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
+              <p className="font-semibold text-accent mb-2">⚠️ Important: Manual Commit Required</p>
+              <p className="text-foreground/90">
+                This is a browser-based app that <strong>cannot automatically write files to GitHub</strong>. 
+                When you click "Publish", files are generated in your browser storage - you must download and commit them manually.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-lg mb-3">📋 Publishing Process</h3>
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                    1
+                  </div>
+                  <div>
+                    <p className="font-semibold">Click "Publish Live Now"</p>
+                    <p className="text-muted-foreground text-xs mt-1">
+                      Generates HTML and metadata in browser storage
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                    2
+                  </div>
+                  <div>
+                    <p className="font-semibold">Click "Download Page Files"</p>
+                    <p className="text-muted-foreground text-xs mt-1">
+                      Downloads <code className="bg-card px-1 rounded">index.html</code> and <code className="bg-card px-1 rounded">page.json</code>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                    3
+                  </div>
+                  <div>
+                    <p className="font-semibold">Create Folder Structure</p>
+                    <p className="text-muted-foreground text-xs mt-1">
+                      In your repo, create: <code className="bg-card px-1 rounded text-[10px]">{previewPath || '...'}</code>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                    4
+                  </div>
+                  <div>
+                    <p className="font-semibold">Commit & Push</p>
+                    <div className="text-muted-foreground text-xs mt-1 bg-card p-2 rounded font-mono space-y-1">
+                      <div>git add &lt;site-name&gt;/pages/&lt;slug&gt;/</div>
+                      <div>git commit -m "Add page"</div>
+                      <div>git push origin main</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                    5
+                  </div>
+                  <div>
+                    <p className="font-semibold">Wait for GitHub Pages</p>
+                    <p className="text-muted-foreground text-xs mt-1">
+                      Build takes 2-3 minutes. Click "Check if Live" to verify.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h3 className="font-bold text-lg mb-3">🔧 GitHub Pages Setup</h3>
+              <p className="text-muted-foreground mb-2">
+                Ensure your repository has GitHub Pages enabled:
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                <li>Go to repo Settings → Pages</li>
+                <li>Source: "GitHub Actions"</li>
+                <li>Workflow file already exists: <code className="bg-card px-1 rounded">.github/workflows/pages.yml</code></li>
+              </ol>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h3 className="font-bold text-lg mb-3">❓ Why Manual?</h3>
+              <p className="text-muted-foreground">
+                This app runs entirely in your browser with no backend server. It physically cannot:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground mt-2">
+                <li>Write files directly to GitHub</li>
+                <li>Create commits on your behalf</li>
+                <li>Push changes automatically</li>
+              </ul>
+              <p className="text-muted-foreground mt-2">
+                The "Publish" button generates the files and shows you where they should go - but you maintain full control over your repository.
+              </p>
+            </div>
+
+            <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+              <p className="text-xs text-center">
+                📖 For complete instructions, see <code className="bg-card px-1 rounded">PUBLISHING_GUIDE.md</code> in the repository
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

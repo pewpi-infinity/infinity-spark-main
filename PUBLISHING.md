@@ -4,6 +4,17 @@
 
 This system generates real HTML pages published under **personalized site identities**. Each user/site has its own name (e.g., "Pixie", "Kris") — **no generic "spark" branding visible**.
 
+### ⚠️ IMPORTANT: Manual Commit Required
+
+This is a **browser-based application** that cannot automatically write files to your GitHub repository. When you "publish" a page:
+
+1. ✅ HTML and metadata are generated in browser storage
+2. ✅ The expected URL is calculated and shown
+3. ❌ Files are NOT automatically committed to your repo
+4. 👉 **You must download and commit files manually**
+
+**See [PUBLISHING_GUIDE.md](./PUBLISHING_GUIDE.md) for complete step-by-step instructions.**
+
 ## 🏗️ Personalized Site Structure
 
 ### Critical Concept: Site Identity
