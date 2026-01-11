@@ -28,11 +28,18 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Success criteria**: Every successful search produces coherent, relevant content based on query semantics, errors are caught and displayed with helpful messages, LLM responses are validated before use
 
 ### Automatic Token Minting
-- **Functionality**: Creates a unique token identifier for every search result
-- **Purpose**: Provides proof-of-knowledge and collectible artifact for each query
+- **Functionality**: Creates a unique token identifier for every search result that can be expanded into multiple pages
+- **Purpose**: Provides proof-of-knowledge and collectible artifact for each query that gains value as more pages are tied to it
 - **Trigger**: Immediately upon search result generation
-- **Progression**: Search completes → token minted with unique ID → displayed on result page → stored in KV
-- **Success criteria**: Every search produces a permanent, retrievable token with metadata
+- **Progression**: Search completes → token minted with unique ID → displayed on result page → stored in KV → can be expanded into unlimited pages
+- **Success criteria**: Every search produces a permanent, retrievable token with metadata that tracks all associated pages
+
+### Token Expansion System
+- **Functionality**: Allows users to create multiple pages from a single token, increasing its value with each addition
+- **Purpose**: Enables building networks of related content where one research token can spawn dozens or millions of pages
+- **Trigger**: User clicks "Expand Token" from token view or page view
+- **Progression**: Expansion initiated → user enters new search query related to token → content generated → structure/feature selection → new page created tied to original token → token value increases
+- **Success criteria**: Single token can have unlimited pages tied to it, token shows cumulative value based on page count, all pages display their parent token ID, users can navigate between token and all its pages
 
 ### Ephemeral Result Display
 - **Functionality**: Shows generated content in clean, readable format without commitment

@@ -26,6 +26,7 @@ import {
   ShareNetwork,
   Question,
   Info,
+  Plus,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { publishToInfinitySpark, getPublishedPageData } from '@/lib/infinityPublisher'
@@ -37,6 +38,7 @@ interface BuiltPageViewProps {
   page: BuildPage
   onBack: () => void
   onPageUpdate: (updatedPage: BuildPage) => void
+  onExpandToken?: (tokenId: string) => void
 }
 
 function generateSlug(title: string): string {
@@ -48,7 +50,7 @@ function generateSlug(title: string): string {
     .trim()
 }
 
-export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps) {
+export function BuiltPageView({ page, onBack, onPageUpdate, onExpandToken }: BuiltPageViewProps) {
   const [isPublishing, setIsPublishing] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [showHelpDialog, setShowHelpDialog] = useState(false)
@@ -561,7 +563,20 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
             <CardContent className="pt-6">
               <div className="text-sm text-muted-foreground space-y-1">
                 <p className="font-mono">Page ID: {page.id}</p>
-                <p className="font-mono">Token: {page.tokenId}</p>
+                <p className="font-mono flex items-center gap-2">
+                  Token: {page.tokenId}
+                  {onExpandToken && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => onExpandToken(page.tokenId)}
+                      className="text-accent h-auto p-0 text-xs"
+                    >
+                      <Plus className="mr-1" size={12} />
+                      Expand
+                    </Button>
+                  )}
+                </p>
                 <p>
                   Created: {new Date(page.timestamp).toLocaleString('en-US', {
                     month: 'long',

@@ -13,6 +13,7 @@ export interface Token {
   content: string
   promoted: boolean
   pageId?: string
+  pageIds?: string[]
   analytics?: TokenAnalytics
 }
 

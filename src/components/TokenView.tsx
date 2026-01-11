@@ -1,13 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, Sparkle, CheckCircle, Link as LinkIcon, Rocket, ShareNetwork } from '@phosphor-icons/react'
-import type { Token, BuildPage } from '@/types'
+import { ArrowLeft, Sparkle, CheckCircle, Link as LinkIcon, Rocket, ShareNetwork, Plus, TrendUp } from '@phosphor-icons/react'
+import type { Token, BuildPage, SearchResult } from '@/types'
 import { formatTimestamp } from '@/lib/search'
 import { trackTokenView, trackTokenShare } from '@/lib/analytics'
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
+import { TokenExpansion } from '@/components/TokenExpansion'
 import { toast } from 'sonner'
 
 interface TokenViewProps {
@@ -16,12 +17,19 @@ interface TokenViewProps {
   onBack: () => void
   onViewPage?: (page: BuildPage) => void
   onTokenUpdate?: (token: Token) => void
+  onExpandToken?: (result: SearchResult) => void
 }
 
-export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate }: TokenViewProps) {
-  const associatedPage = token.pageId 
+export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate, onExpandToken }: TokenViewProps) {
+  const [showExpansion, setShowExpansion] = useState(false)
+  
+  const associatedPages = pages.filter(p => 
+    p.tokenId === token.id || (token.pageIds && token.pageIds.includes(p.id))
+  )
+  
+  const primaryPage = token.pageId 
     ? pages.find(p => p.id === token.pageId) 
-    : undefined
+    : associatedPages[0]
 
   useEffect(() => {
     if (onTokenUpdate) {
@@ -31,14 +39,14 @@ export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate }: T
   }, [])
 
   const handleViewLive = () => {
-    if (associatedPage?.url) {
-      window.open(associatedPage.url, '_blank')
+    if (primaryPage?.url) {
+      window.open(primaryPage.url, '_blank')
     }
   }
 
   const handleCopyUrl = () => {
-    if (associatedPage?.url) {
-      navigator.clipboard.writeText(associatedPage.url)
+    if (primaryPage?.url) {
+      navigator.clipboard.writeText(primaryPage.url)
       toast.success('URL copied to clipboard')
     }
   }
@@ -78,10 +86,12 @@ export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate }: T
   }
 
   const handleViewPageDetails = () => {
-    if (associatedPage && onViewPage) {
-      onViewPage(associatedPage)
+    if (primaryPage && onViewPage) {
+      onViewPage(primaryPage)
     }
   }
+
+  const tokenValue = associatedPages.length * 100
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,7 +116,7 @@ export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate }: T
                       Promoted
                     </Badge>
                   )}
-                  {associatedPage?.published && (
+                  {primaryPage?.published && (
                     <Badge variant="outline" className="mb-2 ml-2 bg-accent/20 text-accent border-accent/30">
                       <Rocket size={14} className="mr-1" weight="fill" />
                       Published
@@ -139,6 +149,28 @@ export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate }: T
             {token.analytics && (
               <AnalyticsDashboard analytics={token.analytics} type="token" />
             )}
+
+            <div className="bg-gradient-to-br from-accent/10 to-primary/5 border border-accent/30 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <TrendUp className="text-accent" size={24} />
+                    Token Value
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {associatedPages.length} {associatedPages.length === 1 ? 'page' : 'pages'} tied to this token
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-accent">{tokenValue}</div>
+                  <div className="text-xs text-muted-foreground">points</div>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Each page you create from this token increases its value. Build a network of related content!
+              </p>
+            </div>
+
             <div>
               <h3 className="text-lg font-semibold mb-3">Content</h3>
               <div className="prose prose-invert max-w-none">
@@ -148,81 +180,116 @@ export function TokenView({ token, pages, onBack, onViewPage, onTokenUpdate }: T
               </div>
             </div>
 
-            {token.promoted && token.pageId && associatedPage && (
-              <>
-                {associatedPage.published && associatedPage.url ? (
-                  <Card className="bg-accent/10 border-accent/30">
-                    <CardContent className="pt-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-accent">
-                          <Rocket size={24} weight="fill" />
-                          <h3 className="text-lg font-semibold">Live Page Available</h3>
+            {associatedPages.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">
+                    Associated Pages ({associatedPages.length})
+                  </h3>
+                  <Button
+                    onClick={() => setShowExpansion(true)}
+                    variant="outline"
+                    size="sm"
+                    className="border-accent/30 hover:bg-accent/10"
+                  >
+                    <Plus className="mr-2" size={16} />
+                    Expand Token
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {associatedPages.map((page) => (
+                    <Card key={page.id} className="bg-card/30 border-border/50 hover:border-accent/30 transition-colors">
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-semibold truncate">{page.title}</h4>
+                              {page.published ? (
+                                <Badge variant="outline" className="bg-accent/20 text-accent border-accent/30 flex-shrink-0">
+                                  <Rocket size={12} className="mr-1" weight="fill" />
+                                  Live
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="flex-shrink-0">
+                                  Draft
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                              {page.content.substring(0, 120)}...
+                            </p>
+                            {page.url && (
+                              <div className="bg-card/50 rounded p-2 font-mono text-xs break-all mb-3 border border-border/50">
+                                {page.url}
+                              </div>
+                            )}
+                            <div className="flex gap-2 flex-wrap">
+                              {page.published && page.url && (
+                                <Button
+                                  onClick={() => window.open(page.url, '_blank')}
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs h-7"
+                                >
+                                  <LinkIcon className="mr-1" size={14} />
+                                  View Live
+                                </Button>
+                              )}
+                              {onViewPage && (
+                                <Button
+                                  onClick={() => onViewPage(page)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-xs h-7"
+                                >
+                                  View Details
+                                </Button>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          This token has been published as a live page with a permanent URL.
-                        </p>
-                        <div className="bg-card/50 rounded-lg p-3 font-mono text-sm break-all border border-accent/20">
-                          {associatedPage.url}
-                        </div>
-                        <div className="flex gap-3 flex-wrap">
-                          <Button
-                            onClick={handleViewLive}
-                            className="flex-1 min-w-[140px] bg-accent hover:bg-accent/90 text-accent-foreground"
-                          >
-                            <LinkIcon className="mr-2" size={18} />
-                            View Live Page
-                          </Button>
-                          <Button
-                            onClick={handleCopyUrl}
-                            variant="outline"
-                            className="flex-1 min-w-[140px]"
-                          >
-                            Copy URL
-                          </Button>
-                          {onViewPage && (
-                            <Button
-                              onClick={handleViewPageDetails}
-                              variant="secondary"
-                              className="flex-1 min-w-[140px]"
-                            >
-                              View Page Details
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="p-4 bg-muted/20 border border-muted rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle size={20} className="text-accent mt-0.5" weight="fill" />
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold">Promoted to Page</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Page ID: <span className="font-mono">{token.pageId}</span>
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Page is in draft mode. Publish it to get a live URL.
-                        </p>
-                        {onViewPage && (
-                          <Button
-                            onClick={handleViewPageDetails}
-                            variant="outline"
-                            size="sm"
-                            className="mt-3"
-                          >
-                            View Page Details
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!token.promoted && associatedPages.length === 0 && (
+              <Card className="bg-primary/10 border-primary/30">
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      This token hasn't been expanded into any pages yet.
+                    </p>
+                    <Button
+                      onClick={() => setShowExpansion(true)}
+                      variant="outline"
+                      size="sm"
+                      className="border-accent/30 hover:bg-accent/10"
+                    >
+                      <Plus className="mr-2" size={16} />
+                      Create First Page
+                    </Button>
                   </div>
-                )}
-              </>
+                </CardContent>
+              </Card>
             )}
           </CardContent>
         </Card>
       </div>
+
+      <TokenExpansion
+        token={token}
+        open={showExpansion}
+        onClose={() => setShowExpansion(false)}
+        onPageCreated={(result) => {
+          if (onExpandToken) {
+            onExpandToken(result)
+          }
+          setShowExpansion(false)
+        }}
+      />
     </div>
   )
 }

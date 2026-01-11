@@ -38,6 +38,7 @@ function App() {
   const [customPageTitle, setCustomPageTitle] = useState('')
   const [showSiteConfig, setShowSiteConfig] = useState(false)
   const [showQuickStart, setShowQuickStart] = useState(false)
+  const [isExpanding, setIsExpanding] = useState(false)
 
   const [tokens, setTokens, _deleteTokens] = useKV<Token[]>('infinity-tokens', [])
   const [pages, setPages, _deletePages] = useKV<BuildPage[]>('infinity-pages', [])
@@ -123,18 +124,38 @@ function App() {
 
     const updatedToken = trackTokenPromotion(currentToken)
 
-    setTokens((current) =>
-      (current || []).map((t) =>
-        t.id === currentToken.id
-          ? { ...updatedToken, promoted: true, pageId: page.id }
-          : t
-      )
-    )
+    setTokens((current) => {
+      const updated = (current || []).map((t) => {
+        if (t.id === currentToken.id) {
+          const pageIds = t.pageIds || []
+          if (!pageIds.includes(page.id)) {
+            pageIds.push(page.id)
+          }
+          return { 
+            ...updatedToken, 
+            promoted: true, 
+            pageId: t.pageId || page.id,
+            pageIds 
+          }
+        }
+        return t
+      })
+      return updated
+    })
 
     setPages((current) => [page, ...(current || [])])
     setCurrentPage(page)
     setShowFeatureSelection(false)
-    setView('page')
+    
+    if (isExpanding) {
+      toast.success('Page created from token expansion!', {
+        description: 'Your token value has increased'
+      })
+      setIsExpanding(false)
+      setView('tokenView')
+    } else {
+      setView('page')
+    }
   }
 
   console.log('[INFINITY] Rendering view:', view)
@@ -176,6 +197,13 @@ function App() {
               (current || []).map((x) => (x.id === p.id ? p : x))
             )
           }
+          onExpandToken={(tokenId) => {
+            const token = (tokens || []).find(t => t.id === tokenId)
+            if (token) {
+              setCurrentToken(token)
+              setView('tokenView')
+            }
+          }}
         />
       )}
 
@@ -221,6 +249,11 @@ function App() {
               (current || []).map((x) => (x.id === t.id ? t : x))
             )
           }
+          onExpandToken={(result) => {
+            setCurrentResult(result)
+            setIsExpanding(true)
+            setShowStructureSelection(true)
+          }}
         />
       )}
 
