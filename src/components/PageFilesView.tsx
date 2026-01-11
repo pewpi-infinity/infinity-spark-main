@@ -81,13 +81,14 @@ export function PageFilesView({ page }: PageFilesViewProps) {
           </div>
         </div>
 
-        {page.published && (
+        {(page.published || page.publishStatus === 'awaiting-build') && (
           <Button
             onClick={handleDownloadFiles}
-            variant="outline"
-            className="w-full"
+            variant="default"
+            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
+            size="lg"
           >
-            <Download className="mr-2" size={18} />
+            <Download className="mr-2" size={20} />
             Download Page Files
           </Button>
         )}

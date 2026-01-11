@@ -365,7 +365,7 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
             <AnalyticsDashboard analytics={page.analytics} type="page" />
           )}
 
-          {page.published && (
+          {(page.published || page.publishStatus === 'awaiting-build') && (
             <PageFilesView page={page} />
           )}
 
@@ -435,11 +435,11 @@ export function BuiltPageView({ page, onBack, onPageUpdate }: BuiltPageViewProps
                     className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg h-auto font-bold shadow-lg hover:shadow-xl transition-all"
                   >
                     <Rocket className="mr-3" size={24} />
-                    {isPublishing ? 'Generating Files...' : 'Generate Page Files'}
+                    {isPublishing ? 'Generating Files...' : 'Publish Live Now'}
                   </Button>
                   
                   <p className="text-xs text-muted-foreground">
-                    Files will be created in browser storage - download and commit to publish
+                    Generates files for download - you'll commit them manually
                   </p>
                 </div>
               )}

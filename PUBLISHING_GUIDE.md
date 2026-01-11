@@ -1,155 +1,94 @@
-# 📘 INFINITY Publishing Guide
+# INFINITY Publishing Guide
 
 ## Overview
 
-INFINITY is a browser-based publishing system that generates static HTML pages from your searches. Pages are **stored in your browser** until you manually add them to your repository for GitHub Pages hosting.
+INFINITY is a browser-based app that generates web pages from search queries. Because it runs entirely in your browser, it **cannot automatically commit files to GitHub**. This guide explains how to publish your generated pages.
 
----
+## Why Manual Publishing?
 
-## 🎯 How Publishing Works
+This app:
+- ✅ Runs entirely in your browser (no backend required)
+- ✅ Generates HTML and metadata files
+- ✅ Stores files in browser storage
+- ❌ Cannot write directly to GitHub repositories
+- ❌ Cannot create commits on your behalf
+- ❌ Cannot push changes automatically
 
-### Current Architecture
+**You maintain full control over your repository.**
 
-1. **Search → Token → Page** (all stored in browser KV storage)
-2. **"Publish" button** generates HTML files and shows expected URL
-3. **Download Files** button lets you save the HTML/JSON locally
-4. **You manually commit** the files to your repo
-5. **GitHub Pages** builds and hosts your site
+## Publishing Process
 
----
+### Step 1: Generate Page Files
 
-## 🚀 Step-by-Step Publishing Process
+1. Search for something in INFINITY
+2. When results appear, click **"Promote to Page"**
+3. Select your page structure (knowledge, business, tool, etc.)
+4. Choose features (charts, images, video, etc.)
+5. Click **"Generate Page Files"**
 
-### Step 1: Configure Your Site
+The app will generate:
+- `index.html` - Your published page
+- `page.json` - Metadata and settings
 
-1. Click the ⚙️ icon on the search page
-2. Enter your site information:
-   - **Site Name**: Your personalized site identifier (e.g., "Pixie", "Kris")  
-   - **Owner Name**: Your name
-   - **GitHub Username**: Your GitHub username
-   - **Repository Name**: Your repository name (e.g., "infinity-spark")
-   - **Pages Root**: Choose `/` (most common) or `/docs`
+### Step 2: Download Files
 
-3. Click **Save Configuration**
+After generating, you'll see a **"Download Page Files"** button. Click it to download both files to your computer.
 
-This sets up URLs like:
+### Step 3: Create Folder Structure
+
+In your repository, create the folder structure shown in the app. For example, if your page slug is `hydrogen-programming`:
+
 ```
-https://<github-user>.github.io/<repo-name>/<site-name>/pages/<page-slug>/
-```
-
-Example:
-```
-https://pewpi-infinity.github.io/infinity-spark/Pixie/pages/memory-1/
-```
-
----
-
-### Step 2: Create Content
-
-1. Enter a search query on the main page
-2. Review the generated content and minted token
-3. Click **"Build This Into a Page"**
-
----
-
-### Step 3: Choose Structure
-
-1. Select page type:
-   - **Read/Research Page**: Clean article layout
-   - **Knowledge Index**: Sectioned documentation
-   - **Personal/Family Site**: Timeline and memories
-   - **Business Page**: Landing page with CTA
-   - **Content Hub**: Media-focused page
-   - **Tool/App Page**: Interactive functionality
-
-2. Add optional features by clicking:
-   - 📊 Charts
-   - 🖼️ Images
-   - 🎵 Audio
-   - 🎥 Video
-   - 📄 Files
-   - 🧩 Widgets
-   - 🧭 Navigation
-   - 💰 Monetization
-
----
-
-### Step 4: Publish the Page
-
-1. Review your page preview
-2. Click **"Publish Live Now"**
-3. The system will:
-   - Generate `index.html` with your content
-   - Generate `page.json` with metadata
-   - Show you the expected live URL
-   - Mark status as **"Awaiting Pages Build"**
-
----
-
-### Step 5: Download & Commit Files
-
-**IMPORTANT**: The files are NOT automatically added to your repo. You must do this manually.
-
-#### Option A: Download Files
-
-1. Click **"Download Page Files"** button
-2. You'll get two files:
-   - `index.html` - The page itself
-   - `page.json` - Metadata
-
-3. Create the folder structure in your repo:
-```
-<site-name>/
+<your-site-name>/
   pages/
-    <page-slug>/
+    hydrogen-programming/
       index.html
       page.json
 ```
 
-4. Add, commit, and push:
+**Important:** The folder structure must match exactly what the app shows, or GitHub Pages won't find your files.
+
+### Step 4: Commit and Push
+
+Using Git in your terminal or GitHub Desktop:
+
 ```bash
-git add <site-name>/pages/<page-slug>/
-git commit -m "Add page: <page-title>"
+# Add the new files
+git add <your-site-name>/pages/<slug>/
+
+# Commit with a descriptive message
+git commit -m "Add page: <your-page-title>"
+
+# Push to GitHub
 git push origin main
 ```
 
-#### Option B: Manual File Creation
+### Step 5: Wait for GitHub Pages Build
 
-1. Copy the file path shown on the page
-2. Create the directory structure in your repo
-3. Create `index.html` and paste the generated HTML
-4. Create `page.json` and paste the metadata
-5. Commit and push as above
+GitHub Pages takes **2-3 minutes** to rebuild after you push. You can:
 
----
+1. Check the **Actions** tab in your GitHub repo to see build progress
+2. Click **"Check if Live"** button in the app to verify the page is live
 
-### Step 6: Verify Publication
+## GitHub Pages Setup
 
-1. Wait 2-3 minutes for GitHub Pages to rebuild
-2. Click **"Check if Live"** button
-3. Once verified, status changes to **"Published"**
-4. Click **"View Live"** to see your page on the web
-
----
-
-## 🔧 GitHub Pages Setup
-
-### Required Repository Settings
+Your repository must have GitHub Pages enabled:
 
 1. Go to your repo → **Settings** → **Pages**
-2. Under **Source**, select **"GitHub Actions"**
-3. The existing `.github/workflows/pages.yml` will handle deployment
+2. **Source**: Select "GitHub Actions"
+3. Ensure you have a workflow file at `.github/workflows/pages.yml`
 
-### Workflow File
+### Sample Workflow File
 
-Your repo should have `.github/workflows/pages.yml`:
+If you don't have a workflow file, create `.github/workflows/pages.yml`:
 
 ```yaml
-name: Deploy Spark App to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -161,214 +100,107 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm install --no-audit --no-fund
-      - run: npm run build
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
     steps:
-      - id: deployment
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
 ```
 
-This workflow:
-1. Builds your Spark app (the SPA that runs the generator)
-2. Deploys it to GitHub Pages
-3. Any committed page files in `<site-name>/pages/` will also be deployed
+## Troubleshooting
 
----
+### My page shows 404
 
-## 📂 Repository Structure
+**Common causes:**
 
-After publishing pages, your repo will look like:
+1. **Folder structure mismatch**: Ensure the folder path matches exactly what the app shows
+2. **Missing index.html**: The file must be named `index.html`, not `index.htm` or anything else
+3. **Pages not enabled**: Check Settings → Pages is configured
+4. **Build still running**: Wait 2-3 minutes and check Actions tab
+5. **Wrong branch**: Ensure you pushed to the correct branch (usually `main`)
 
-```
-infinity-spark/
-├── .github/
-│   └── workflows/
-│       └── pages.yml          # GitHub Pages deployment
-├── src/                       # Spark app source code
-├── dist/                      # Built Spark app (auto-generated)
-├── Pixie/                     # Example site name
-│   └── pages/
-│       ├── memory-1/
-│       │   ├── index.html
-│       │   └── page.json
-│       └── memory-2/
-│           ├── index.html
-│           └── page.json
-├── index.html                 # Spark app entry point
-└── package.json
-```
+### Files aren't downloading
 
----
+- Check your browser's download settings
+- Make sure pop-ups aren't blocked
+- Try a different browser
 
-## ⚠️ Important Notes
+### URL doesn't match
 
-### Why Manual Commit?
+The app generates URLs based on your site configuration. To change:
 
-This is a **browser-based application** with no backend server. It cannot:
-- Write files directly to your GitHub repository
-- Create commits on your behalf
-- Push changes automatically
+1. Click the **Settings** icon on the home page
+2. Update your **Site Name**, **GitHub User**, and **Repo Name**
+3. The URL format will be: `https://<github-user>.github.io/<repo-name>/<site-name>/pages/<slug>/`
 
-The "Publish" button generates files in browser storage and provides download functionality.
+## Site Configuration
 
-### Workflow Confusion
+### Setting Up Your Site
 
-The workflow you mentioned (`Spark Preview` → `Collect Spark Pages`) is **NOT compatible** with this app. That workflow expects artifacts from a non-existent "Spark Preview" workflow.
+On first launch, INFINITY will prompt you to configure your site:
 
-The correct workflow is already in your repo: `.github/workflows/pages.yml`
+- **Site Name**: Your personalized site identity (e.g., "Pixie", "MyKnowledge")
+- **Owner Name**: Your name
+- **GitHub User**: Your GitHub username
+- **Repo Name**: The repository name where pages will be published
+- **Pages Root**: Usually `/` (leave default unless you know you need `/docs`)
 
-### Pages Not Building?
+### Multiple Sites
 
-If pages show "Awaiting Build" indefinitely:
-
-1. **Check if files were committed**: Look in your repo for the `<site-name>/pages/<slug>/` folder
-2. **Check Actions tab**: Verify the workflow ran successfully
-3. **Check Pages settings**: Ensure GitHub Pages is enabled and source is "GitHub Actions"
-4. **Try the rebuild trigger**: The app can't do this automatically, but you can commit an empty file:
-   ```bash
-   touch .pages-rebuild
-   git add .pages-rebuild
-   git commit -m "Trigger Pages rebuild"
-   git push
-   ```
-
----
-
-## 🎨 Personalizing Your Site
-
-### Multiple Sites in One Repo
-
-You can create multiple personalized sites:
+You can create multiple sites in the same repository by using different Site Names. Each site will have its own folder:
 
 ```
-your-repo/
-├── Pixie/
-│   └── pages/
-├── Kris/
-│   └── pages/
-└── AnotherSite/
-    └── pages/
+repo/
+  SiteOne/
+    pages/
+      page-1/
+  SiteTwo/
+    pages/
+      page-1/
 ```
 
-Each site is independent. Configure the Site Name in the app settings.
+## Advanced: Automating Publishing
 
-### Site Branding
+If you want to automate the process, you would need to:
 
-The Site Name you configure appears in:
-- Page URLs
-- Page metadata
-- Footer credits
-- Page titles
+1. Build a backend service that watches for published pages
+2. Use the GitHub API to create commits
+3. Host this service somewhere (not in the browser)
 
-Users never see "infinity-spark" or "Spark" branding (unless in the repo name).
+This is beyond the scope of this app, which prioritizes simplicity and no-backend operation.
 
----
+## Support
 
-## 🔄 Workflow Summary
+If you encounter issues:
 
-```
-┌─────────────┐
-│   Search    │
-└──────┬──────┘
-       │
-       v
-┌─────────────┐
-│ Create Page │ (Choose structure & features)
-└──────┬──────┘
-       │
-       v
-┌─────────────┐
-│   Publish   │ (Generate HTML in browser)
-└──────┬──────┘
-       │
-       v
-┌─────────────┐
-│  Download   │ (Save files locally)
-└──────┬──────┘
-       │
-       v
-┌─────────────┐
-│Git Add/Push │ (Manual commit to repo)
-└──────┬──────┘
-       │
-       v
-┌─────────────┐
-│GitHub Pages │ (Auto-build from workflow)
-└──────┬──────┘
-       │
-       v
-┌─────────────┐
-│  Live URL!  │
-└─────────────┘
-```
+1. Check the browser console for errors (F12 → Console)
+2. Verify your GitHub Pages settings
+3. Ensure your workflow file exists and is configured correctly
+4. Check that your repository is public (or you have GitHub Pro for private repos)
 
----
+## Summary
 
-## 💡 Tips & Best Practices
+**The publishing process in 5 steps:**
 
-1. **Configure site settings first** - Do this before creating your first page
-2. **Use descriptive page titles** - These become the URL slug
-3. **Download files immediately** - Browser storage can be cleared
-4. **Commit pages in batches** - Reduces rebuild frequency
-5. **Wait for verification** - Let GitHub Pages complete its build cycle
-6. **Use meaningful site names** - They're part of your public URLs
+1. ✨ Generate page files in the app
+2. ⬇️ Download the files
+3. 📁 Create the folder structure in your repo
+4. ☁️ Commit and push to GitHub
+5. ⏱️ Wait 2-3 minutes for Pages to build
 
----
-
-## 🆘 Troubleshooting
-
-### Issue: "Awaiting Build" Forever
-
-**Cause**: Files not in repository  
-**Fix**: Download and commit the files manually
-
-### Issue: 404 on Published URL
-
-**Cause**: Workflow hasn't run or files in wrong location  
-**Fix**: 
-1. Check repo structure matches `<site-name>/pages/<slug>/index.html`
-2. Check Actions tab for build failures
-3. Verify Pages settings
-
-### Issue: Lost Page Data
-
-**Cause**: Browser storage cleared  
-**Fix**: 
-- If files were committed to repo, page still lives at its URL
-- If not committed, page data is unrecoverable (download files immediately after publishing)
-
-### Issue: Wrong Base URL
-
-**Cause**: Incorrect site configuration  
-**Fix**: Click settings ⚙️ and update GitHub username/repo name
-
----
-
-## 📖 Further Reading
-
-- [GitHub Pages Documentation](https://docs.github.com/en/pages)
-- [GitHub Actions for Pages](https://github.com/actions/deploy-pages)
-- See `PRD.md` for design philosophy
-- See `README.md` for development setup
-
----
-
-**Remember**: INFINITY generates the pages, but **you control publication** by choosing when to commit files to your repository.
+Your page will then be live at the URL shown in the app!
