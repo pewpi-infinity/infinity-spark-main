@@ -27,11 +27,13 @@ import {
   Question,
   Info,
   Plus,
+  GithubLogo,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { publishToInfinitySpark, getPublishedPageData } from '@/lib/infinityPublisher'
+import { publishPageToGitHub, hasGitHubToken } from '@/lib/githubPublisher'
 import { trackPageView, trackPageShare, initializePageAnalytics } from '@/lib/analytics'
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
+import { GitHubTokenDialog } from '@/components/GitHubTokenDialog'
 import type { BuildPage } from '@/types'
 
 interface BuiltPageViewProps {
@@ -56,6 +58,8 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
   const [isPublishing, setIsPublishing] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [showHelpDialog, setShowHelpDialog] = useState(false)
+  const [showTokenDialog, setShowTokenDialog] = useState(false)
+  const [hasToken, setHasToken] = useState(false)
 
   const relatedPages = allPages.filter(p => 
     p.tokenId === page.tokenId && p.id !== page.id
@@ -71,6 +75,8 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
     } else {
       onPageUpdate(trackPageView(page))
     }
+
+    hasGitHubToken().then(setHasToken)
   }, [])
 
   const featureIcons = {
@@ -89,11 +95,18 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
     .map(([key]) => key as keyof typeof featureIcons)
 
   const handlePublish = async () => {
+    const tokenExists = await hasGitHubToken()
+    
+    if (!tokenExists) {
+      setShowTokenDialog(true)
+      return
+    }
+
     setIsPublishing(true)
-    const toastId = toast.loading('Publishing to INFINITY...')
+    const toastId = toast.loading('Publishing to infinity-spark...')
 
     try {
-      const result = await publishToInfinitySpark(page)
+      const result = await publishPageToGitHub(page)
 
       if (result.success && result.url) {
         const updatedPage: BuildPage = {
@@ -107,8 +120,8 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
         onPageUpdate(updatedPage)
 
         toast.dismiss(toastId)
-        toast.success('Page submitted successfully!', {
-          description: 'Owner will deploy it to infinity-spark repo shortly'
+        toast.success('Page published to GitHub!', {
+          description: 'GitHub Pages will build in 1-3 minutes'
         })
       } else {
         toast.dismiss(toastId)
@@ -121,6 +134,11 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
     } finally {
       setIsPublishing(false)
     }
+  }
+
+  const handleTokenSuccess = () => {
+    setHasToken(true)
+    toast.success('GitHub authentication configured!')
   }
 
   const handleViewLive = () => {
@@ -432,8 +450,8 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
 
                   <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
                     <p className="text-sm text-muted-foreground mb-3">
-                      <strong className="text-foreground">One-Click Publishing:</strong> Your page data will be sent to INFINITY. 
-                      The owner will deploy it to the infinity-spark repository where it will be hosted for free.
+                      <strong className="text-foreground">GitHub Publishing:</strong> Your page will be committed directly to the infinity-spark repository using the GitHub API. 
+                      You'll need to provide a GitHub token once for secure authentication.
                     </p>
                     <Button
                       variant="link"
@@ -451,8 +469,8 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                         1
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">Submit to INFINITY</p>
-                        <p className="text-xs text-muted-foreground">One click sends your page data</p>
+                        <p className="font-semibold">Authenticate with GitHub</p>
+                        <p className="text-xs text-muted-foreground">Provide token once (stored securely)</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
@@ -460,8 +478,8 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                         2
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">Owner Deploys</p>
-                        <p className="text-xs text-muted-foreground">Pushed to infinity-spark repo</p>
+                        <p className="font-semibold">Commit to Repository</p>
+                        <p className="text-xs text-muted-foreground">Files pushed to c13b0/infinity-spark</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
@@ -469,8 +487,8 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                         3
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">Live on Web</p>
-                        <p className="text-xs text-muted-foreground">Hosted free at c13b0.github.io/infinity-spark</p>
+                        <p className="font-semibold">Live on GitHub Pages</p>
+                        <p className="text-xs text-muted-foreground">Automatically deployed in 1-3 minutes</p>
                       </div>
                     </div>
                   </div>
@@ -481,12 +499,12 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     size="lg"
                     className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg h-auto font-bold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <Rocket className="mr-3" size={24} />
-                    {isPublishing ? 'Submitting...' : 'Publish to INFINITY'}
+                    <GithubLogo className="mr-3" size={24} weight="fill" />
+                    {isPublishing ? 'Publishing...' : hasToken ? 'Publish to GitHub' : 'Setup & Publish'}
                   </Button>
                   
                   <p className="text-xs text-muted-foreground">
-                    One-click submission - owner deploys to infinity-spark
+                    {hasToken ? 'Commit directly to infinity-spark repository' : 'First-time setup required'}
                   </p>
                 </div>
               )}
@@ -504,9 +522,9 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                   </div>
 
                   <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-accent mb-2">✨ Awaiting Deployment</p>
+                    <p className="text-sm font-semibold text-accent mb-2">✨ GitHub Pages Building</p>
                     <p className="text-sm text-foreground/90">
-                      Your page data is stored and ready. The repository owner will push it to infinity-spark when they next deploy updates.
+                      Your page was committed to the repository. GitHub Pages is building and will deploy in 1-3 minutes.
                     </p>
                   </div>
 
@@ -514,11 +532,11 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Status:</span>
-                        <span className="font-semibold text-muted-foreground">Pending Owner Deployment</span>
+                        <span className="font-semibold text-muted-foreground">Building on GitHub Pages</span>
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Expected URL after deployment:</span>
+                          <span>Page will be live at:</span>
                         </div>
                         <div className="bg-card/50 rounded-lg p-3 font-mono text-xs break-all">
                           {page.url}
@@ -676,19 +694,19 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
               <Info className="text-accent" size={28} />
-              How INFINITY Publishing Works
+              How GitHub Publishing Works
             </DialogTitle>
             <DialogDescription className="text-base">
-              Simple one-click publishing to infinity-spark
+              Direct publishing to infinity-spark using GitHub API
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 text-sm">
             <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
-              <p className="font-semibold text-accent mb-2">✨ No GitHub Knowledge Required</p>
+              <p className="font-semibold text-accent mb-2">✨ Direct GitHub Integration</p>
               <p className="text-foreground/90">
-                This is a <strong>one-click publishing system</strong>. You don't need to know about commits, repos, or GitHub Pages. 
-                Just click "Publish to INFINITY" and your page will be deployed by the owner.
+                Your pages are <strong>committed directly to the infinity-spark repository</strong> using the GitHub API. 
+                No manual work required - just authenticate once and publish!
               </p>
             </div>
 
@@ -700,9 +718,9 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     1
                   </div>
                   <div>
-                    <p className="font-semibold">You Click Publish</p>
+                    <p className="font-semibold">Authenticate with GitHub (Once)</p>
                     <p className="text-muted-foreground text-xs mt-1">
-                      Your page content is saved securely in the app's storage
+                      Provide a GitHub token with repository write access (stored securely)
                     </p>
                   </div>
                 </div>
@@ -712,9 +730,9 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     2
                   </div>
                   <div>
-                    <p className="font-semibold">Owner Gets Notification</p>
+                    <p className="font-semibold">Click Publish</p>
                     <p className="text-muted-foreground text-xs mt-1">
-                      The infinity-spark repo owner sees your submission
+                      Your page HTML is generated and committed to the repo via GitHub API
                     </p>
                   </div>
                 </div>
@@ -724,9 +742,9 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     3
                   </div>
                   <div>
-                    <p className="font-semibold">Automatic Deployment</p>
+                    <p className="font-semibold">GitHub Pages Builds</p>
                     <p className="text-muted-foreground text-xs mt-1">
-                      Owner runs a script that deploys all pending pages to c13b0.github.io/infinity-spark
+                      Automatic deployment happens in 1-3 minutes after commit
                     </p>
                   </div>
                 </div>
@@ -738,7 +756,7 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                   <div>
                     <p className="font-semibold">Your Page Goes Live</p>
                     <p className="text-muted-foreground text-xs mt-1">
-                      Page is hosted free on GitHub Pages at your personal URL
+                      Page is hosted free at c13b0.github.io/infinity-spark/pages/[slug]/
                     </p>
                   </div>
                 </div>
@@ -750,36 +768,43 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
             <div>
               <h3 className="font-bold text-lg mb-3">🎯 Key Benefits</h3>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>No GitHub account or technical knowledge needed</li>
-                <li>No manual file downloads or commits</li>
+                <li>Direct API integration - no manual commits</li>
+                <li>Instant publishing - live in 1-3 minutes</li>
                 <li>Free hosting on GitHub Pages</li>
                 <li>Your own permanent URL</li>
-                <li>Owner handles all the technical deployment</li>
+                <li>Token stored securely in Spark KV</li>
               </ul>
             </div>
 
             <Separator />
 
             <div>
-              <h3 className="font-bold text-lg mb-3">⏱️ Timeline</h3>
+              <h3 className="font-bold text-lg mb-3">🔐 GitHub Token Setup</h3>
               <p className="text-muted-foreground mb-2">
-                After you click publish:
+                You'll need a GitHub Personal Access Token with:
               </p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Your page data is saved instantly</li>
-                <li>Owner typically deploys within 24-48 hours</li>
-                <li>You'll receive your live URL at: <code className="bg-card px-1 rounded text-[10px]">c13b0.github.io/infinity-spark/[username]/[page-slug]</code></li>
+                <li>Repository: <strong>c13b0/infinity-spark</strong></li>
+                <li>Permission: <strong>Contents (Read and Write)</strong></li>
+                <li>Token is stored securely in your Spark KV storage</li>
+                <li>Never hardcoded or exposed in code</li>
               </ul>
             </div>
 
             <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
               <p className="text-xs text-center">
-                🚀 This system removes all complexity from web publishing - just create and click!
+                🚀 GitHub API publishing gives you instant, automated deployment!
               </p>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      <GitHubTokenDialog
+        open={showTokenDialog}
+        onClose={() => setShowTokenDialog(false)}
+        onSuccess={handleTokenSuccess}
+      />
     </div>
   )
 }
