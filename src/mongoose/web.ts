@@ -14,11 +14,12 @@ export async function fetchWebContext(query: string): Promise<{
   }
 
   try {
-    const promptText = `Provide a brief contextual summary (2-3 sentences) about: ${q}
+    // @ts-ignore - TypeScript incorrectly infers template tag return type
+    const prompt: string = spark.llmPrompt`Provide a brief contextual summary (2-3 sentences) about: ${q}
     
 Focus on what would be most useful for someone researching this topic.`
 
-    const summary = await spark.llm(promptText, 'gpt-4o-mini', false)
+    const summary = await spark.llm(prompt, 'gpt-4o-mini', false)
     
     return {
       summary: summary.trim(),

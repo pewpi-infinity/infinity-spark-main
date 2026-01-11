@@ -14,16 +14,14 @@ export async function mongooseLLM(input: {
     const contextPart = input.context?.summary || ''
     const instructionsPart = input.instructions || 'Generate 2-3 paragraphs of informative, engaging content about this topic. Focus on accuracy and clarity.'
     
-    let promptText = `You are an AI research engine generating high-quality web content.
+    const contextSection = contextPart ? `\n\nContext: ${contextPart}` : ''
+    
+    // @ts-ignore - TypeScript incorrectly infers template tag return type
+    const prompt: string = spark.llmPrompt`You are an AI research engine generating high-quality web content.
 
-Query: ${q}
-`
-    
-    if (contextPart) {
-      promptText += `\nContext: ${contextPart}\n`
-    }
-    
-    promptText += `\n${instructionsPart}
+Query: ${q}${contextSection}
+
+${instructionsPart}
 
 Return a JSON object with:
 - content: 2-3 well-written paragraphs
@@ -32,7 +30,7 @@ Return a JSON object with:
 
 Format as valid JSON.`
 
-    const response = await spark.llm(promptText, 'gpt-4o', true)
+    const response = await spark.llm(prompt, 'gpt-4o', true)
     const result = JSON.parse(response)
 
     if (!result.content || !result.analysis) {

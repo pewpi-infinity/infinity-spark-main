@@ -28,4 +28,4 @@ declare global {
   const spark: Window['spark']
 }
 
-export {}
+export type { TemplateStringsArray }
