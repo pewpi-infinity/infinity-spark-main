@@ -44,7 +44,8 @@ function App() {
   const [hasSeenQuickStart, setHasSeenQuickStart] = useKV<boolean>('has-seen-quickstart', false)
   const [siteConfig, updateSiteConfig] = useSiteConfig()
 
-  console.log('[INFINITY] App render - view:', view, 'siteConfig:', siteConfig, 'tokens:', tokens?.length, 'pages:', pages?.length)
+  console.log('[INFINITY] App initialized and rendering')
+  console.log('[INFINITY] View:', view, '| Tokens:', tokens?.length ?? 0, '| Pages:', pages?.length ?? 0)
 
   useEffect(() => {
     if (!hasSeenQuickStart && (tokens || []).length === 0 && (pages || []).length === 0) {
@@ -60,9 +61,6 @@ function App() {
     }
   }, [siteConfig, showQuickStart])
 
-  /* ============================
-     RESTORED FUNCTION (THE BUG)
-     ============================ */
   const handleSearch = async (query: string) => {
     if (isProcessing) return
     
@@ -138,6 +136,8 @@ function App() {
     setShowFeatureSelection(false)
     setView('page')
   }
+
+  console.log('[INFINITY] Rendering view:', view)
 
   return (
     <div className="min-h-screen bg-background text-foreground">

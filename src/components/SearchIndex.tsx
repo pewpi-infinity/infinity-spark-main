@@ -17,7 +17,8 @@ interface SearchIndexProps {
 export function SearchIndex({ onSearch, onViewArchives, onViewPages, onOpenSettings, hasTokens, hasPages, isProcessing }: SearchIndexProps) {
   const [query, setQuery] = useState('')
 
-  console.log('[SearchIndex] Rendering with hasTokens:', hasTokens, 'hasPages:', hasPages, 'isProcessing:', isProcessing)
+  console.log('[SearchIndex] Component mounted and rendering')
+  console.log('[SearchIndex] Props:', { hasTokens, hasPages, isProcessing })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
