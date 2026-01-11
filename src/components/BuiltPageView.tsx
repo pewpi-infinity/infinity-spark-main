@@ -275,9 +275,22 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
   }
 
   const handleSaveChanges = () => {
+    const trimmedTitle = editedTitle.trim()
+    const trimmedContent = editedContent.trim()
+
+    if (!trimmedTitle) {
+      toast.error('Title cannot be empty')
+      return
+    }
+
+    if (!trimmedContent) {
+      toast.error('Content cannot be empty')
+      return
+    }
+
     const hasChanges = 
-      editedTitle !== page.title || 
-      editedContent !== page.content ||
+      trimmedTitle !== page.title || 
+      trimmedContent !== page.content ||
       JSON.stringify(editedFeatures) !== JSON.stringify(page.features)
 
     if (!hasChanges) {
@@ -288,8 +301,8 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
 
     const updatedPage: BuildPage = {
       ...page,
-      title: editedTitle,
-      content: editedContent,
+      title: trimmedTitle,
+      content: trimmedContent,
       features: editedFeatures,
     }
 
@@ -954,6 +967,108 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
         onClose={() => setShowTokenDialog(false)}
         onSuccess={handleTokenSuccess}
       />
+
+      <Dialog open={isEditing} onOpenChange={(open) => !open && handleCancelEdit()}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <PencilSimple className="text-accent" size={28} />
+              Edit Page
+            </DialogTitle>
+            <DialogDescription>
+              Update your page title, content, and features
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Page Title</Label>
+              <Input
+                id="edit-title"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                placeholder="Enter page title"
+                className="text-lg"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-content">Content</Label>
+              <Textarea
+                id="edit-content"
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                placeholder="Enter page content"
+                rows={12}
+                className="resize-none"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>Page Features</Label>
+              <div className="space-y-3 bg-card/30 p-4 rounded-lg border border-border/50">
+                {Object.entries(editedFeatures).map(([feature, enabled]) => (
+                  <div key={feature} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {featureIcons[feature as keyof typeof featureIcons]}
+                      <span className="text-sm font-medium">
+                        {feature.charAt(0).toUpperCase() + feature.slice(1)}
+                      </span>
+                    </div>
+                    <Switch
+                      checked={enabled}
+                      onCheckedChange={() => handleFeatureToggle(feature as keyof PageFeatures)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleSaveChanges}
+                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                Save Changes
+              </Button>
+              <Button
+                onClick={handleCancelEdit}
+                variant="outline"
+                className="flex-1"
+              >
+                <ArrowCounterClockwise className="mr-2" size={16} />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Republish Page?</DialogTitle>
+            <DialogDescription>
+              This page has been published. Would you like to republish it with the new changes?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={handleRepublish}
+              className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
+              Republish Now
+            </Button>
+            <Button
+              onClick={() => setShowUpdateDialog(false)}
+              variant="outline"
+              className="flex-1"
+            >
+              Later
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
