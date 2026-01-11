@@ -70,7 +70,7 @@ function App() {
 
   useEffect(() => {
     try {
-      if (siteConfig && siteConfig.siteName === 'Untitled' && !showQuickStart && safeTokens.length === 0) {
+      if (siteConfig.siteName === 'Untitled' && !showQuickStart && safeTokens.length === 0) {
         const timer = setTimeout(() => setShowSiteConfig(true), 500)
         return () => clearTimeout(timer)
       }
@@ -199,18 +199,6 @@ function App() {
 
   console.log('[INFINITY] Rendering view:', view)
   console.log('[INFINITY] siteConfig:', siteConfig)
-
-  if (!siteConfig) {
-    console.warn('[INFINITY] Waiting for siteConfig to initialize...')
-    return (
-      <div className="min-h-screen flex items-center justify-center text-foreground bg-background">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4 cosmic-glow">INFINITY</h1>
-          <p className="text-muted-foreground animate-pulse">Initializing...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen text-foreground relative bg-background">
