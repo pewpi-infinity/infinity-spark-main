@@ -162,18 +162,6 @@ function App() {
   console.log('[INFINITY] Rendering view:', view)
   console.log('[INFINITY] siteConfig:', siteConfig)
 
-  if (!siteConfig) {
-    return (
-      <div className="min-h-screen text-foreground relative flex items-center justify-center">
-        <Toaster position="top-center" theme="dark" />
-        <div className="text-center">
-          <div className="text-7xl font-bold mb-4">INFINITY</div>
-          <div className="text-muted-foreground animate-pulse">Initializing...</div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen text-foreground relative">
       <Toaster position="top-center" theme="dark" />
@@ -283,14 +271,12 @@ function App() {
         onCancel={() => setShowFeatureSelection(false)}
       />
 
-      {siteConfig && (
-        <SiteConfigDialog
-          open={showSiteConfig}
-          config={siteConfig}
-          onClose={() => setShowSiteConfig(false)}
-          onSave={updateSiteConfig}
-        />
-      )}
+      <SiteConfigDialog
+        open={showSiteConfig}
+        config={siteConfig}
+        onClose={() => setShowSiteConfig(false)}
+        onSave={updateSiteConfig}
+      />
 
       <QuickStartGuide
         open={showQuickStart}

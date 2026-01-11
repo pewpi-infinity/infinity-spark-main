@@ -39,31 +39,25 @@ export async function setSiteConfig(config: Partial<SiteConfig>): Promise<SiteCo
   return updated
 }
 
-export function useSiteConfig(): [SiteConfig | null, (config: Partial<SiteConfig>) => Promise<void>] {
-  const [config, setConfig, _deleteConfig] = useKV<SiteConfig>('site-config', {
-    siteName: 'Untitled',
-    ownerName: 'User',
-    githubUser: 'pewpi-infinity',
-    repoName: 'infinity-spark',
-    baseUrl: 'https://pewpi-infinity.github.io/infinity-spark',
-    pagesRoot: '/'
-  })
+const defaultSiteConfig: SiteConfig = {
+  siteName: 'Untitled',
+  ownerName: 'User',
+  githubUser: 'pewpi-infinity',
+  repoName: 'infinity-spark',
+  baseUrl: 'https://pewpi-infinity.github.io/infinity-spark',
+  pagesRoot: '/'
+}
+
+export function useSiteConfig(): [SiteConfig, (config: Partial<SiteConfig>) => Promise<void>] {
+  const [config, setConfig, _deleteConfig] = useKV<SiteConfig>('site-config', defaultSiteConfig)
 
   const updateConfig = async (updates: Partial<SiteConfig>) => {
     setConfig((current) => {
-      const defaultConfig: SiteConfig = {
-        siteName: 'Untitled',
-        ownerName: 'User',
-        githubUser: 'pewpi-infinity',
-        repoName: 'infinity-spark',
-        baseUrl: 'https://pewpi-infinity.github.io/infinity-spark',
-        pagesRoot: '/'
-      }
-      const updated = { ...(current || defaultConfig), ...updates }
+      const updated = { ...(current || defaultSiteConfig), ...updates }
       updated.baseUrl = `https://${updated.githubUser}.github.io/${updated.repoName}`
       return updated
     })
   }
 
-  return [config ?? null, updateConfig]
+  return [config || defaultSiteConfig, updateConfig]
 }
