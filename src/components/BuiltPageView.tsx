@@ -319,45 +319,6 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
   const handleRepublish = async () => {
     setShowUpdateDialog(false)
     await handlePublish()
-  }
-
-  const handleFeatureToggle = (feature: keyof PageFeatures) => {
-    setEditedFeatures(prev => ({
-      ...prev,
-      [feature]: !prev[feature]
-    }))
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="mr-2" size={20} />
-            Back to Search
-          </Button>
-          <div className="flex gap-2">
-            {!isEditing && (
-              <Button
-                variant="outline"
-                onClick={handleStartEdit}
-                className="text-accent hover:text-accent"
-              >
-                <PencilSimple className="mr-2" size={16} />
-                Edit Page
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowHelpDialog(true)}
-              className="text-muted-foreground"
-            >
-              <Question className="mr-2" size={16} />
               Publishing Help
             </Button>
           </div>
@@ -761,15 +722,6 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     >
                       <ShareNetwork className="mr-2" size={18} />
                       Share Page
-                    </Button>
-                    <Button
-                      onClick={handleRepublish}
-                      disabled={isPublishing}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <ArrowCounterClockwise className="mr-2" size={18} />
-                      {isPublishing ? 'Publishing...' : 'Republish'}
                     </Button>
                   </div>
                 </div>
