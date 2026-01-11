@@ -138,6 +138,7 @@ function App() {
   }
 
   console.log('[INFINITY] Rendering view:', view)
+  console.log('[INFINITY] siteConfig:', siteConfig)
 
   return (
     <div className="min-h-screen bg-background text-foreground">
