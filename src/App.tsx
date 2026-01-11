@@ -158,9 +158,8 @@ function App() {
       {view === 'pageView' && currentPage && (
         <BuiltPageView
           page={currentPage}
-          allPages={pages || []}
           onBack={handleBackToIndex}
-          onPageUpdate={handleUpdatePage}
+          onUpdate={handleUpdatePage}
         />
       )}
 
