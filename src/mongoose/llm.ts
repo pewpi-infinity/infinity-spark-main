@@ -11,14 +11,19 @@ export async function mongooseLLM(input: {
   }
 
   try {
-    const contextPart = input.context?.summary ? `Context: ${input.context.summary}\n\n` : ''
+    const contextPart = input.context?.summary || ''
     const instructionsPart = input.instructions || 'Generate 2-3 paragraphs of informative, engaging content about this topic. Focus on accuracy and clarity.'
     
-    const promptText = `You are an AI research engine generating high-quality web content.
+    let promptText = `You are an AI research engine generating high-quality web content.
 
 Query: ${q}
-
-${contextPart}${instructionsPart}
+`
+    
+    if (contextPart) {
+      promptText += `\nContext: ${contextPart}\n`
+    }
+    
+    promptText += `\n${instructionsPart}
 
 Return a JSON object with:
 - content: 2-3 well-written paragraphs

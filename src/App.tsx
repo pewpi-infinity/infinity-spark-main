@@ -50,16 +50,24 @@ function App() {
   console.log('[INFINITY] siteConfig loaded:', siteConfig ? 'yes' : 'loading...')
 
   useEffect(() => {
-    if (!hasSeenQuickStart && (tokens || []).length === 0 && (pages || []).length === 0) {
-      const timer = setTimeout(() => setShowQuickStart(true), 800)
-      return () => clearTimeout(timer)
+    try {
+      if (!hasSeenQuickStart && (tokens || []).length === 0 && (pages || []).length === 0) {
+        const timer = setTimeout(() => setShowQuickStart(true), 800)
+        return () => clearTimeout(timer)
+      }
+    } catch (error) {
+      console.error('[INFINITY] Error in quickstart effect:', error)
     }
   }, [hasSeenQuickStart, tokens, pages])
 
   useEffect(() => {
-    if (siteConfig && siteConfig.siteName === 'Untitled' && !showQuickStart && (tokens || []).length === 0) {
-      const timer = setTimeout(() => setShowSiteConfig(true), 500)
-      return () => clearTimeout(timer)
+    try {
+      if (siteConfig && siteConfig.siteName === 'Untitled' && !showQuickStart && (tokens || []).length === 0) {
+        const timer = setTimeout(() => setShowSiteConfig(true), 500)
+        return () => clearTimeout(timer)
+      }
+    } catch (error) {
+      console.error('[INFINITY] Error in siteConfig effect:', error)
     }
   }, [siteConfig, showQuickStart, tokens])
 
@@ -70,9 +78,13 @@ function App() {
     const toastId = toast.loading('Processing your search...')
 
     try {
+      console.log('[INFINITY] Starting search for:', query)
       const result = await processSearch(query)
+      console.log('[INFINITY] Search result received:', result)
+      
       const token = createToken(query, result.content)
       token.analytics = initializeTokenAnalytics()
+      console.log('[INFINITY] Token created:', token.id)
 
       setTokens((current) => [token, ...(current || [])])
       setCurrentResult(result)
@@ -82,11 +94,11 @@ function App() {
       toast.dismiss(toastId)
       toast.success('Token minted successfully!')
     } catch (error) {
+      console.error('[INFINITY] Search error details:', error)
       toast.dismiss(toastId)
       toast.error(
         error instanceof Error ? error.message : 'Failed to process search'
       )
-      console.error('[Search Error]', error)
     } finally {
       setIsProcessing(false)
     }
@@ -161,6 +173,17 @@ function App() {
 
   console.log('[INFINITY] Rendering view:', view)
   console.log('[INFINITY] siteConfig:', siteConfig)
+
+  if (!siteConfig) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-foreground">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">INFINITY</h1>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen text-foreground relative">

@@ -52,11 +52,16 @@ export function useSiteConfig(): [SiteConfig, (config: Partial<SiteConfig>) => P
   const [config, setConfig, _deleteConfig] = useKV<SiteConfig>('site-config', defaultSiteConfig)
 
   const updateConfig = async (updates: Partial<SiteConfig>) => {
-    setConfig((current) => {
-      const updated = { ...(current || defaultSiteConfig), ...updates }
-      updated.baseUrl = `https://${updated.githubUser}.github.io/${updated.repoName}`
-      return updated
-    })
+    try {
+      setConfig((current) => {
+        const updated = { ...(current || defaultSiteConfig), ...updates }
+        updated.baseUrl = `https://${updated.githubUser}.github.io/${updated.repoName}`
+        return updated
+      })
+    } catch (error) {
+      console.error('[useSiteConfig] Error updating config:', error)
+      throw error
+    }
   }
 
   return [config || defaultSiteConfig, updateConfig]
