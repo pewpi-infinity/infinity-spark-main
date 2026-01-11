@@ -125,6 +125,13 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Progression**: User interaction occurs → corresponding analytics metric incremented → analytics persisted in KV → displayed in page view and index
 - **Success criteria**: Analytics accurately track all interactions, display in both compact and full dashboard formats, calculate engagement scores
 
+### Page Update and Republish System
+- **Functionality**: Edit published or draft pages and optionally republish to GitHub with updated content
+- **Purpose**: Allows users to refine and improve pages after creation without recreating from scratch
+- **Trigger**: User clicks "Edit Page" button on page view
+- **Progression**: Edit initiated → page enters edit mode → user modifies title, content, and/or features → saves changes → edit analytics incremented → if page was published, republish dialog appears → user can republish now or later → republish commits updated page to GitHub → awaiting build status → verification → live
+- **Success criteria**: All page fields editable (title, content, features), changes persist to KV, edit count tracked in analytics, published pages show republish prompt, republish flow identical to initial publish, updated content appears live after GitHub Pages rebuild
+
 ### Analytics Dashboard
 - **Functionality**: Visual display of token and page metrics with compact and full views
 - **Purpose**: Makes engagement data accessible and understandable at a glance
@@ -155,6 +162,10 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Manual Verification Retry** - User can click "Check if Live" button to manually trigger verification at any time
 - **Published Status Accuracy** - Only show "Published" when URL returns 200, never assume based on time
 - **Republishing Pages** - Allow users to update and republish pages, update existing files in repo
+- **Editing Without Changes** - If user saves without making changes, show info message and close edit mode
+- **Republish After Edit** - Automatically prompt to republish if page was already published when edits saved
+- **Republish Later** - User can decline republish prompt and republish manually later
+- **Edit Mode Navigation** - User cannot navigate away from page while in edit mode without saving or canceling
 - **Multiple Pages Same Name** - Slug generation handles conflicts, warns user if slug will match existing page
 - **Search for Existing Page** - Show existing page in results, offer to view or rebuild
 - **Empty Archive Search** - Display message when no tokens or pages exist yet

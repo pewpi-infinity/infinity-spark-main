@@ -3,6 +3,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
   DialogContent,
@@ -28,13 +32,15 @@ import {
   Info,
   Plus,
   GithubLogo,
+  PencilSimple,
+  ArrowCounterClockwise,
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { publishPageToGitHub, hasGitHubToken } from '@/lib/githubPublisher'
-import { trackPageView, trackPageShare, initializePageAnalytics } from '@/lib/analytics'
+import { trackPageView, trackPageShare, initializePageAnalytics, trackPageEdit } from '@/lib/analytics'
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
 import { GitHubTokenDialog } from '@/components/GitHubTokenDialog'
-import type { BuildPage } from '@/types'
+import type { BuildPage, PageFeatures } from '@/types'
 
 interface BuiltPageViewProps {
   page: BuildPage
@@ -60,6 +66,11 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
   const [showHelpDialog, setShowHelpDialog] = useState(false)
   const [showTokenDialog, setShowTokenDialog] = useState(false)
   const [hasToken, setHasToken] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false)
+  const [editedTitle, setEditedTitle] = useState(page.title)
+  const [editedContent, setEditedContent] = useState(page.content)
+  const [editedFeatures, setEditedFeatures] = useState<PageFeatures>(page.features)
 
   const isValidPage = page && page.id
 
@@ -82,6 +93,12 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
 
     hasGitHubToken().then(setHasToken)
   }, [page.id])
+
+  useEffect(() => {
+    setEditedTitle(page.title)
+    setEditedContent(page.content)
+    setEditedFeatures(page.features)
+  }, [page.title, page.content, page.features])
 
   if (!isValidPage) {
     return (
@@ -243,6 +260,100 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
     }
   }
 
+  const handleStartEdit = () => {
+    setEditedTitle(page.title)
+    setEditedContent(page.content)
+    setEditedFeatures(page.features)
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setEditedTitle(page.title)
+    setEditedContent(page.content)
+    setEditedFeatures(page.features)
+    setIsEditing(false)
+  }
+
+  const handleSaveChanges = () => {
+    const hasChanges = 
+      editedTitle !== page.title || 
+      editedContent !== page.content ||
+      JSON.stringify(editedFeatures) !== JSON.stringify(page.features)
+
+    if (!hasChanges) {
+      toast.info('No changes to save')
+      setIsEditing(false)
+      return
+    }
+
+    const updatedPage: BuildPage = {
+      ...page,
+      title: editedTitle,
+      content: editedContent,
+      features: editedFeatures,
+    }
+
+    const trackedPage = trackPageEdit(updatedPage)
+    onPageUpdate(trackedPage)
+    setIsEditing(false)
+    toast.success('Page updated successfully!')
+
+    if (page.published) {
+      setShowUpdateDialog(true)
+    }
+  }
+
+  const handleRepublish = async () => {
+    setShowUpdateDialog(false)
+    
+    const tokenExists = await hasGitHubToken()
+    
+    if (!tokenExists) {
+      setShowTokenDialog(true)
+      return
+    }
+
+    setIsPublishing(true)
+    const toastId = toast.loading('Republishing updated page...')
+
+    try {
+      const result = await publishPageToGitHub(page)
+
+      if (result.success && result.url) {
+        const updatedPage: BuildPage = {
+          ...page,
+          published: false,
+          publishStatus: 'awaiting-build',
+          url: result.url,
+          publishedAt: Date.now(),
+        }
+
+        onPageUpdate(updatedPage)
+
+        toast.dismiss(toastId)
+        toast.success('Page republished!', {
+          description: 'Changes will be live in 1-3 minutes'
+        })
+      } else {
+        toast.dismiss(toastId)
+        toast.error(result.error || 'Failed to republish page')
+      }
+    } catch (error) {
+      toast.dismiss(toastId)
+      toast.error('Failed to republish page')
+      console.error(error)
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
+  const handleFeatureToggle = (feature: keyof PageFeatures) => {
+    setEditedFeatures(prev => ({
+      ...prev,
+      [feature]: !prev[feature]
+    }))
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-8">
@@ -255,23 +366,76 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
             <ArrowLeft className="mr-2" size={20} />
             Back to Search
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowHelpDialog(true)}
-            className="text-muted-foreground"
-          >
-            <Question className="mr-2" size={16} />
-            Publishing Help
-          </Button>
+          <div className="flex gap-2">
+            {!isEditing && (
+              <Button
+                variant="outline"
+                onClick={handleStartEdit}
+                className="text-accent hover:text-accent"
+              >
+                <PencilSimple className="mr-2" size={16} />
+                Edit Page
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowHelpDialog(true)}
+              className="text-muted-foreground"
+            >
+              <Question className="mr-2" size={16} />
+              Publishing Help
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-6">
+          {isEditing && (
+            <Card className="bg-accent/10 border-accent/30">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <PencilSimple size={24} className="text-accent" />
+                    Editing Mode
+                  </h3>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                    >
+                      <ArrowCounterClockwise className="mr-2" size={16} />
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSaveChanges}
+                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    >
+                      <CheckCircle className="mr-2" size={16} />
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="bg-card/50 backdrop-blur-sm border-accent/30">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-2 flex-1">
-                  <CardTitle className="text-4xl">{page.title}</CardTitle>
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="page-title">Page Title</Label>
+                      <Input
+                        id="page-title"
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        className="text-2xl font-bold h-auto py-2"
+                      />
+                    </div>
+                  ) : (
+                    <CardTitle className="text-4xl">{page.title}</CardTitle>
+                  )}
                   <div className="flex gap-2 flex-wrap">
                     {page.tags.map((tag, index) => (
                       <Badge key={index} variant="secondary">
@@ -280,42 +444,82 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleShare}
-                    variant="outline"
-                    size="icon"
-                  >
-                    <ShareNetwork size={20} />
-                  </Button>
-                  {page.publishStatus === 'awaiting-build' ? (
-                    <Badge 
-                      className="bg-muted/20 text-muted-foreground border-muted"
+                {!isEditing && (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleShare}
                       variant="outline"
+                      size="icon"
                     >
-                      ⚠️ Awaiting Pages Build
-                    </Badge>
-                  ) : page.published ? (
-                    <Badge 
-                      className="bg-accent/20 text-accent border-accent/30"
-                      variant="outline"
-                    >
-                      <CheckCircle className="mr-1" size={16} />
-                      Published
-                    </Badge>
-                  ) : (
-                    <Badge 
-                      className="bg-muted/20 text-muted-foreground border-muted"
-                      variant="outline"
-                    >
-                      ⚠️ Draft
-                    </Badge>
-                  )}
-                </div>
+                      <ShareNetwork size={20} />
+                    </Button>
+                    {page.publishStatus === 'awaiting-build' ? (
+                      <Badge 
+                        className="bg-muted/20 text-muted-foreground border-muted"
+                        variant="outline"
+                      >
+                        ⚠️ Awaiting Pages Build
+                      </Badge>
+                    ) : page.published ? (
+                      <Badge 
+                        className="bg-accent/20 text-accent border-accent/30"
+                        variant="outline"
+                      >
+                        <CheckCircle className="mr-1" size={16} />
+                        Published
+                      </Badge>
+                    ) : (
+                      <Badge 
+                        className="bg-muted/20 text-muted-foreground border-muted"
+                        variant="outline"
+                      >
+                        ⚠️ Draft
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </div>
             </CardHeader>
             <CardContent>
-              {enabledFeatures.length > 0 && (
+              {isEditing && (
+                <>
+                  <div className="mb-6 space-y-4">
+                    <div>
+                      <Label className="text-base font-semibold mb-3 block">Page Features</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {Object.entries(featureIcons).map(([key, icon]) => (
+                          <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-card/50 border border-border">
+                            <Label htmlFor={`feature-${key}`} className="flex items-center gap-2 cursor-pointer">
+                              {icon}
+                              <span className="text-sm capitalize">{key}</span>
+                            </Label>
+                            <Switch
+                              id={`feature-${key}`}
+                              checked={editedFeatures[key as keyof PageFeatures]}
+                              onCheckedChange={() => handleFeatureToggle(key as keyof PageFeatures)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <Separator className="mb-6" />
+                  <div className="space-y-2">
+                    <Label htmlFor="page-content">Page Content</Label>
+                    <Textarea
+                      id="page-content"
+                      value={editedContent}
+                      onChange={(e) => setEditedContent(e.target.value)}
+                      className="min-h-[300px] font-normal"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {editedContent.length} characters
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {!isEditing && enabledFeatures.length > 0 && (
                 <>
                   <div className="flex gap-2 flex-wrap mb-6">
                     {enabledFeatures.map((feature) => (
@@ -333,11 +537,13 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
                 </>
               )}
 
-              <div className="prose prose-invert max-w-none">
-                <p className="text-lg text-foreground/90 leading-relaxed whitespace-pre-wrap">
-                  {page.content}
-                </p>
-              </div>
+              {!isEditing && (
+                <div className="prose prose-invert max-w-none">
+                  <p className="text-lg text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                    {page.content}
+                  </p>
+                </div>
+              )}
 
               {page.features.monetization && (
                 <>
@@ -714,6 +920,50 @@ export function BuiltPageView({ page, allPages = [], onBack, onPageUpdate, onExp
           </Card>
         </div>
       </div>
+
+      <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Rocket className="text-accent" size={24} />
+              Republish Updated Page?
+            </DialogTitle>
+            <DialogDescription>
+              Your page has been updated locally. Would you like to republish it to GitHub?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+              <p className="text-sm text-foreground/90">
+                Republishing will commit your changes to the repository and trigger a new GitHub Pages build.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowUpdateDialog(false)}
+                className="flex-1"
+              >
+                Later
+              </Button>
+              <Button
+                onClick={handleRepublish}
+                disabled={isPublishing}
+                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                <GithubLogo className="mr-2" size={18} weight="fill" />
+                {isPublishing ? 'Publishing...' : 'Republish Now'}
+              </Button>
+            </div>
+
+            <p className="text-xs text-center text-muted-foreground">
+              Changes will be live in 1-3 minutes after republishing
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
