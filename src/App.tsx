@@ -125,6 +125,15 @@ function App() {
     setCurrentPage(updatedPage)
   }
 
+  const handleExpandToken = (tokenId: string) => {
+    toast.info('Token expansion feature coming soon!')
+  }
+
+  const handleNavigateToPage = (page: BuildPage) => {
+    setCurrentPage(page)
+    setView('pageView')
+  }
+
   return (
     <div className="relative min-h-screen">
       <Toaster position="top-center" />
@@ -158,8 +167,11 @@ function App() {
       {view === 'pageView' && currentPage && (
         <BuiltPageView
           page={currentPage}
+          allPages={pages || []}
           onBack={handleBackToIndex}
-          onUpdate={handleUpdatePage}
+          onPageUpdate={handleUpdatePage}
+          onExpandToken={handleExpandToken}
+          onNavigateToPage={handleNavigateToPage}
         />
       )}
 

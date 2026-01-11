@@ -76,19 +76,12 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Progression**: Choices collected → builder determines required assets → generates/retrieves files → assembles page structure → page becomes accessible as draft
 - **Success criteria**: Generated pages are functional and include only selected features
 
-### One-Click INFINITY Publishing System
-- **Functionality**: Simple submission system that sends page data to KV storage for owner deployment to infinity-spark repository
-- **Purpose**: Removes all technical complexity from users - no GitHub knowledge, commits, or manual file handling required
-- **Trigger**: User clicks "Publish to INFINITY" button on built page
-- **Progression**: Publish initiated → user authenticated → page HTML generated → data stored in KV with user info → page registered in central registry → user sees "Submitted" status with expected URL → owner periodically deploys from registry → pages go live at c13b0.github.io/infinity-spark/[username]/[slug]/
-- **Success criteria**: Users never see GitHub terminology, no file downloads required, one-click submission works, clear messaging about owner deployment process, expected URL shown immediately
-
-### Owner Deployment Process
-- **Functionality**: Repository owner extracts pending pages from KV storage and deploys to infinity-spark repo
-- **Purpose**: Centralizes hosting and removes individual user repository requirements  
-- **Trigger**: Owner runs deployment process (manual or scheduled)
-- **Progression**: Owner accesses KV registry → exports pending pages → creates directory structure in infinity-spark → writes HTML files → commits and pushes → GitHub Pages builds → pages go live
-- **Success criteria**: Clear documentation for owner, efficient batch deployment possible, pages organized by username
+### Direct GitHub API Publishing System
+- **Functionality**: Direct publishing to infinity-spark repository using GitHub API with one-time token authentication
+- **Purpose**: Removes manual file handling - users authenticate once and publish directly via API
+- **Trigger**: User clicks "Publish to GitHub" button on built page
+- **Progression**: Publish initiated → user provides GitHub token (first time only) → token verified against c13b0/infinity-spark repo → page HTML generated → committed directly to repo via GitHub API → page registered in KV registry → GitHub Pages automatically builds in 1-3 minutes → user can verify when live
+- **Success criteria**: One-time token setup, direct commits to repo, automatic GitHub Pages deployment, live URL verification works, token stored securely in KV
 
 ### Secondary Page Index
 - **Functionality**: Maintains searchable catalog of built pages showing draft vs published status
@@ -151,19 +144,18 @@ This is a multi-state application with search processing, LLM-driven content gen
 - **Page Build Cancellation** - Allow exit at any point during structure or feature selection, preserve token and basic result
 - **Failed Content Generation** - Gracefully show error, still mint token for query attempt
 - **No Feature Selection** - If user declines all enhancements, create minimal content-only page based on structure
-- **Publication Failure** - Show error toast, keep page in draft state, allow retry
-- **Awaiting Deployment Status** - Show spinner with clear message that owner will deploy, provide "Check if Live" button
-- **User Checks Before Deployment** - "Check if Live" returns not found, inform user to check back later
-- **Page Goes Live** - Verification succeeds, status changes to "Published", live URL buttons enabled
-- **404 After 3 Minutes** - System triggers rebuild by touching .gitpages-rebuild file, continues showing "Awaiting Pages Build"
-- **Manual Verification Retry** - User can click "Check if Live Now" button to manually trigger verification check at any time
-- **False Positive Published Status** - Only show "Published" status when URL actually returns 200, never assume based on time alone
-- **File Structure Display** - Show required /pages/{slug}/index.html path clearly, provide download option for published pages
-- **Unpublished Pages** - Display "⚠️ Draft" badge, show publish button with explanation including file path
-- **Published Pages** - Display "✅ Published" badge with checkmark only after URL verification, show live URL prominently, provide copy and open buttons
-- **Awaiting Build Pages** - Display "⚠️ Awaiting Pages Build" badge with spinner, show expected URL, explain 90 second to 3 minute build time, provide manual retry button
-- **URL Generation** - Compute URLs using personalized site structure: `https://{githubUser}.github.io/{repoName}/{siteName}/pages/{slug}/` and verify with HEAD request
-- **GitHub Pages Root Detection** - Automatically detect whether Pages is serving from / or /docs root and adjust file paths accordingly
+- **GitHub Token Not Configured** - Show token setup dialog on first publish attempt, verify token has correct permissions
+- **GitHub Token Invalid** - Clear error message, option to reconfigure token
+- **GitHub API Failure** - Show specific error message from API, keep page in draft state, allow retry
+- **Repository Access Denied** - Verify token has Contents write permission for c13b0/infinity-spark
+- **File Already Exists in Repo** - Update existing file with new SHA, preserve commit history
+- **Awaiting GitHub Pages Build** - Show spinner with clear message about 1-3 minute build time, provide "Check if Live" button
+- **User Checks Before Build Complete** - "Check if Live" returns 404, inform user to wait longer and try again
+- **Page Goes Live** - URL verification succeeds (HTTP 200), status changes to "Published", live URL buttons enabled
+- **Manual Verification Retry** - User can click "Check if Live" button to manually trigger verification at any time
+- **Published Status Accuracy** - Only show "Published" when URL returns 200, never assume based on time
+- **Republishing Pages** - Allow users to update and republish pages, update existing files in repo
+- **Multiple Pages Same Name** - Slug generation handles conflicts, warns user if slug will match existing page
 - **Search for Existing Page** - Show existing page in results, offer to view or rebuild
 - **Empty Archive Search** - Display message when no tokens or pages exist yet
 - **No Archive Search Results** - Show helpful message when query matches nothing, suggest adjusting filters
