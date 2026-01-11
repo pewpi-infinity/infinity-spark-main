@@ -208,17 +208,17 @@ function App() {
     (view === 'tokenView' && !currentToken) ||
     !['search', 'result', 'page', 'index', 'localSearch', 'tokenView'].includes(view)
 
-  return (
-    <div className="min-h-screen text-foreground relative bg-background">
-      <DebugInfo />
-      <Toaster position="top-center" theme="dark" />
-
-      <BrainResult />
-
-      {shouldShowSearch && (
-        <SearchIndex
           onSearch={handleSearch}
           isProcessing={isProcessing}
+        />
+      )}
+
+      {view === 'result' && currentResult && currentToken && (
+        <ResultPage
+      {shouldShowSearch && (
+          token={currentToken}
+          onBack={handleBackToSearch}
+          onPromote={handlePromote}
         />
       )}
 
@@ -228,11 +228,11 @@ function App() {
           token={currentToken}
           onBack={handleBackToSearch}
           onPromote={handlePromote}
-        />
-      )}
-
+        />={(p) => {
+      )}es((current) =>
+              (current || []).map((x) => (x.id === p.id ? p : x))
       {view === 'page' && currentPage && currentPage.id && (
-        <BuiltPageView
+        <BuiltPageView=== p.id) {
           key={currentPage.id}
           page={currentPage}
           allPages={safePages}
@@ -240,11 +240,11 @@ function App() {
           onPageUpdate={(p) => {
             setPages((current) =>
               (current || []).map((x) => (x.id === p.id ? p : x))
-            )
+            )View')
             if (currentPage && currentPage.id === p.id) {
               setCurrentPage(p)
-            }
-          }}
+            }(p) => {
+          }} {
           onExpandToken={(tokenId) => {
             const token = safeTokens.find(t => t.id === tokenId)
             if (token) {
@@ -256,23 +256,23 @@ function App() {
             if (p && p.id) {
               console.log('[INFINITY] Navigating to page:', p.id, p.title)
               setCurrentPage(p)
-            }
-          }}
+            })
+          }})
         />
-      )}
-
+      )}handleBackToSearch}
+          onSearchArchives={() => setView('localSearch')}
       {view === 'index' && (
         <PageIndex
           pages={safePages}
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
-          }}
+          }}}
           onBack={handleBackToSearch}
           onSearchArchives={() => setView('localSearch')}
-        />
+        />okenView')
       )}
-
+          onViewPage={(p) => {
       {view === 'localSearch' && (
         <LocalSearch
           tokens={safeTokens}
@@ -280,70 +280,54 @@ function App() {
           onViewToken={(t) => {
             setCurrentToken(t)
             setView('tokenView')
-          }}
+          }}' && currentToken && (
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
-          }}
+          }}tView('localSearch')}
           onBack={handleBackToSearch}
-        />
-      )}
-
+        />Page(p)
+      )}w('page')
+          }}
       {view === 'tokenView' && currentToken && (
         <TokenView
-          token={currentToken}
+          token={currentToken}x))
           pages={safePages}
           onBack={() => setView('localSearch')}
           onViewPage={(p) => {
             setCurrentPage(p)
             setView('page')
-          }}
+          }}reSelection(true)
           onTokenUpdate={(t) =>
             setTokens((current) =>
               (current || []).map((x) => (x.id === t.id ? t : x))
             )
-          }
+          }ion
           onExpandToken={(result) => {
             setCurrentResult(result)
             setIsExpanding(true)
             setShowStructureSelection(true)
           }}
         />
-      )}
+      )}lection
+          open={showFeatureSelection}
+          config={siteConfig}
+          onClose={() => setShowSiteConfig(false)}
+          onSave={updateSiteConfig}
+        />
 
-      <StructureSelection
-        open={showStructureSelection}
-        defaultTitle={currentResult?.query}
-        onComplete={handleStructureSelection}
-        onCancel={() => setShowStructureSelection(false)}
-      />
-
-      <FeatureSelection
-        open={showFeatureSelection}
-        structure={selectedStructure || undefined}
-        onComplete={handleFeatureSelection}
-        onCancel={() => setShowFeatureSelection(false)}
-      />
-
-      <SiteConfigDialog
-        open={showSiteConfig}
-        config={siteConfig}
-        onClose={() => setShowSiteConfig(false)}
-        onSave={updateSiteConfig}
-      />
-
-      <QuickStartGuide
-        open={showQuickStart}
-        onClose={() => {
-          setShowQuickStart(false)
-          setHasSeenQuickStart(true)
-        }}
-        onStartDemo={() => {
-          setShowSiteConfig(true)
-        }}
-      />
-    </div>
-  )
+        <QuickStartGuide
+          open={showQuickStart}
+          onClose={() => {
+            setShowQuickStart(false)
+            setHasSeenQuickStart(true)
+          }}
+          onStartDemo={() => {
+            setShowSiteConfig(true)
+          }}
+        />
+      </div>
+    )
 }
 
 export default App
