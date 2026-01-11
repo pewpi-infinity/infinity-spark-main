@@ -47,6 +47,7 @@ function App() {
 
   console.log('[INFINITY] App initialized and rendering')
   console.log('[INFINITY] View:', view, '| Tokens:', tokens?.length ?? 0, '| Pages:', pages?.length ?? 0)
+  console.log('[INFINITY] siteConfig loaded:', siteConfig ? 'yes' : 'loading...')
 
   useEffect(() => {
     if (!hasSeenQuickStart && (tokens || []).length === 0 && (pages || []).length === 0) {
@@ -56,11 +57,11 @@ function App() {
   }, [hasSeenQuickStart, tokens, pages])
 
   useEffect(() => {
-    if (siteConfig && siteConfig.siteName === 'Untitled' && !showQuickStart) {
+    if (siteConfig && siteConfig.siteName === 'Untitled' && !showQuickStart && (tokens || []).length === 0) {
       const timer = setTimeout(() => setShowSiteConfig(true), 500)
       return () => clearTimeout(timer)
     }
-  }, [siteConfig, showQuickStart])
+  }, [siteConfig, showQuickStart, tokens])
 
   const handleSearch = async (query: string) => {
     if (isProcessing) return
@@ -160,6 +161,18 @@ function App() {
 
   console.log('[INFINITY] Rendering view:', view)
   console.log('[INFINITY] siteConfig:', siteConfig)
+
+  if (!siteConfig) {
+    return (
+      <div className="min-h-screen text-foreground relative flex items-center justify-center">
+        <Toaster position="top-center" theme="dark" />
+        <div className="text-center">
+          <div className="text-7xl font-bold mb-4">INFINITY</div>
+          <div className="text-muted-foreground animate-pulse">Initializing...</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen text-foreground relative">
