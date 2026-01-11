@@ -100,12 +100,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
+        with:
+          path: '.'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+```
       - name: Checkout
         uses: actions/checkout@v4
       
@@ -114,14 +114,14 @@ jobs:
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-      
-      - name: Deploy to GitHub Pages
+        with:index.html**: The file must be named `index.html`, not `index.htm` or anything else
+          path: '.'**: Check Settings → Pages is configured
+      uild still running**: Wait 2-3 minutes and check Actions tab
+      - name: Deploy to GitHub Pagesusually `main`)
         id: deployment
         uses: actions/deploy-pages@v4
-```
-
+- Check your browser's download settings
+-ups aren't blocked
 ## Troubleshooting
 
 ### My page shows 404
@@ -130,30 +130,30 @@ jobs:
 
 1. **Folder structure mismatch**: Ensure the folder path matches exactly what the app shows
 2. **Missing index.html**: The file must be named `index.html`, not `index.htm` or anything else
-3. **Pages not enabled**: Check Settings → Pages is configured
+3. **Pages not enabled**: Check Settings → Pages is configureds/<slug>/`
 4. **Build still running**: Wait 2-3 minutes and check Actions tab
 5. **Wrong branch**: Ensure you pushed to the correct branch (usually `main`)
 
 ### Files aren't downloading
 
-- Check your browser's download settings
+- Check your browser's download settingsour site:
 - Make sure pop-ups aren't blocked
-- Try a different browser
-
-### URL doesn't match
-
-The app generates URLs based on your site configuration. To change:
+- Try a different browsersonalized site identity (e.g., "Pixie", "MyKnowledge")
+*Owner Name**: Your name
+### URL doesn't matchur GitHub username
+repository name where pages will be published
+The app generates URLs based on your site configuration. To change:ed `/docs`)
 
 1. Click the **Settings** icon on the home page
 2. Update your **Site Name**, **GitHub User**, and **Repo Name**
 3. The URL format will be: `https://<github-user>.github.io/<repo-name>/<site-name>/pages/<slug>/`
 
 ## Site Configuration
-
+repo/
 ### Setting Up Your Site
-
+    pages/
 On first launch, INFINITY will prompt you to configure your site:
-
+  SiteTwo/
 - **Site Name**: Your personalized site identity (e.g., "Pixie", "MyKnowledge")
 - **Owner Name**: Your name
 - **GitHub User**: Your GitHub username
@@ -164,43 +164,11 @@ On first launch, INFINITY will prompt you to configure your site:
 
 You can create multiple sites in the same repository by using different Site Names. Each site will have its own folder:
 
-```
-repo/
-  SiteOne/
-    pages/
-      page-1/
-  SiteTwo/
-    pages/
-      page-1/
-```
-
-## Advanced: Automating Publishing
-
-If you want to automate the process, you would need to:
-
-1. Build a backend service that watches for published pages
-2. Use the GitHub API to create commits
-3. Host this service somewhere (not in the browser)
-
-This is beyond the scope of this app, which prioritizes simplicity and no-backend operation.
-
-## Support
-
-If you encounter issues:
-
-1. Check the browser console for errors (F12 → Console)
-2. Verify your GitHub Pages settings
-3. Ensure your workflow file exists and is configured correctly
-4. Check that your repository is public (or you have GitHub Pro for private repos)
-
-## Summary
-
-**The publishing process in 5 steps:**
-
 1. ✨ Generate page files in the app
-2. ⬇️ Download the files
-3. 📁 Create the folder structure in your repo
-4. ☁️ Commit and push to GitHub
-5. ⏱️ Wait 2-3 minutes for Pages to build
-
-Your page will then be live at the URL shown in the app!
+repo/the files
+  SiteOne/der structure in your repo
+    pages/ GitHub
+      page-1/ for Pages to build
+  SiteTwo/
+    pages/e at the URL shown in the app!
+      page-1/## Advanced: Automating PublishingIf you want to automate the process, you would need to:1. Build a backend service that watches for published pages2. Use the GitHub API to create commits3. Host this service somewhere (not in the browser)This is beyond the scope of this app, which prioritizes simplicity and no-backend operation.## SupportIf you encounter issues:1. Check the browser console for errors (F12 → Console)2. Verify your GitHub Pages settings3. Ensure your workflow file exists and is configured correctly4. Check that your repository is public (or you have GitHub Pro for private repos)## Summary**The publishing process in 5 steps:**1. ✨ Generate page files in the app2. ⬇️ Download the files3. 📁 Create the folder structure in your repo4. ☁️ Commit and push to GitHub5. ⏱️ Wait 2-3 minutes for Pages to buildYour page will then be live at the URL shown in the app!
