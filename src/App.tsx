@@ -202,20 +202,11 @@ function App() {
   console.log('[INFINITY] currentToken:', currentToken ? currentToken.id : 'none')
   console.log('[INFINITY] siteConfig:', siteConfig)
 
-  if (view === 'page' && (!currentPage || !currentPage.id)) {
-    console.warn('[INFINITY] Page view requested but no valid page, redirecting to search')
-    setTimeout(() => setView('search'), 0)
-  }
-
-  if (view === 'result' && (!currentResult || !currentToken)) {
-    console.warn('[INFINITY] Result view requested but no valid result, redirecting to search')
-    setTimeout(() => setView('search'), 0)
-  }
-
-  if (view === 'tokenView' && !currentToken) {
-    console.warn('[INFINITY] TokenView requested but no valid token, redirecting to search')
-    setTimeout(() => setView('search'), 0)
-  }
+  const shouldShowSearch = view === 'search' || 
+    (view === 'page' && (!currentPage || !currentPage.id)) ||
+    (view === 'result' && (!currentResult || !currentToken)) ||
+    (view === 'tokenView' && !currentToken) ||
+    !['search', 'result', 'page', 'index', 'localSearch', 'tokenView'].includes(view)
 
   return (
     <div className="min-h-screen text-foreground relative bg-background">
@@ -224,142 +215,135 @@ function App() {
 
       <BrainResult />
 
-      {view === 'search' && (
+      {shouldShowSearch && (
         <SearchIndex
           onSearch={handleSearch}
           isProcessing={isProcessing}
         />
       )}
 
-        {view === 'result' && currentResult && currentToken && (
-          <ResultPage
-            result={currentResult}
-            token={currentToken}
-            onBack={handleBackToSearch}
-            onPromote={handlePromote}
-          />
-        )}
+      {view === 'result' && currentResult && currentToken && (
+        <ResultPage
+          result={currentResult}
+          token={currentToken}
+          onBack={handleBackToSearch}
+          onPromote={handlePromote}
+        />
+      )}
 
-        {view === 'page' && currentPage && currentPage.id && (
-          <BuiltPageView
-            key={currentPage.id}
-            page={currentPage}
-            allPages={safePages}
-            onBack={handleBackToSearch}
-            onPageUpdate={(p) => {
-              setPages((current) =>
-                (current || []).map((x) => (x.id === p.id ? p : x))
-              )
-              if (currentPage && currentPage.id === p.id) {
-                setCurrentPage(p)
-              }
-            }}
-            onExpandToken={(tokenId) => {
-              const token = safeTokens.find(t => t.id === tokenId)
-              if (token) {
-                setCurrentToken(token)
-                setView('tokenView')
-              }
-            }}
-            onNavigateToPage={(p) => {
-              if (p && p.id) {
-                console.log('[INFINITY] Navigating to page:', p.id, p.title)
-                setCurrentPage(p)
-              }
-            }}
-          />
-        )}
-
-        {view === 'index' && (
-          <PageIndex
-            pages={safePages}
-            onViewPage={(p) => {
+      {view === 'page' && currentPage && currentPage.id && (
+        <BuiltPageView
+          key={currentPage.id}
+          page={currentPage}
+          allPages={safePages}
+          onBack={handleBackToSearch}
+          onPageUpdate={(p) => {
+            setPages((current) =>
+              (current || []).map((x) => (x.id === p.id ? p : x))
+            )
+            if (currentPage && currentPage.id === p.id) {
               setCurrentPage(p)
-              setView('page')
-            }}
-            onBack={handleBackToSearch}
-            onSearchArchives={() => setView('localSearch')}
-          />
-        )}
-
-        {view === 'localSearch' && (
-          <LocalSearch
-            tokens={safeTokens}
-            pages={safePages}
-            onViewToken={(t) => {
-              setCurrentToken(t)
-              setView('tokenView')
-            }}
-            onViewPage={(p) => {
-              setCurrentPage(p)
-              setView('page')
-            }}
-            onBack={handleBackToSearch}
-          />
-        )}
-
-        {view === 'tokenView' && currentToken && (
-          <TokenView
-            token={currentToken}
-            pages={safePages}
-            onBack={() => setView('localSearch')}
-            onViewPage={(p) => {
-              setCurrentPage(p)
-              setView('page')
-            }}
-            onTokenUpdate={(t) =>
-              setTokens((current) =>
-                (current || []).map((x) => (x.id === t.id ? t : x))
-              )
             }
-            onExpandToken={(result) => {
-              setCurrentResult(result)
-              setIsExpanding(true)
-              setShowStructureSelection(true)
-            }}
-          />
-        )}
-
-        {!['search', 'result', 'page', 'index', 'localSearch', 'tokenView'].includes(view) && (
-          <SearchIndex
-            onSearch={handleSearch}
-            isProcessing={isProcessing}
-          />
-        )}
-
-        <StructureSelection
-          open={showStructureSelection}
-          defaultTitle={currentResult?.query}
-          onComplete={handleStructureSelection}
-          onCancel={() => setShowStructureSelection(false)}
-        />
-
-        <FeatureSelection
-          open={showFeatureSelection}
-          structure={selectedStructure || undefined}
-          onComplete={handleFeatureSelection}
-          onCancel={() => setShowFeatureSelection(false)}
-        />
-
-        <SiteConfigDialog
-          open={showSiteConfig}
-          config={siteConfig}
-          onClose={() => setShowSiteConfig(false)}
-          onSave={updateSiteConfig}
-        />
-
-        <QuickStartGuide
-          open={showQuickStart}
-          onClose={() => {
-            setShowQuickStart(false)
-            setHasSeenQuickStart(true)
           }}
-          onStartDemo={() => {
-            setShowSiteConfig(true)
+          onExpandToken={(tokenId) => {
+            const token = safeTokens.find(t => t.id === tokenId)
+            if (token) {
+              setCurrentToken(token)
+              setView('tokenView')
+            }
+          }}
+          onNavigateToPage={(p) => {
+            if (p && p.id) {
+              console.log('[INFINITY] Navigating to page:', p.id, p.title)
+              setCurrentPage(p)
+            }
           }}
         />
-      </div>
-    )
+      )}
+
+      {view === 'index' && (
+        <PageIndex
+          pages={safePages}
+          onViewPage={(p) => {
+            setCurrentPage(p)
+            setView('page')
+          }}
+          onBack={handleBackToSearch}
+          onSearchArchives={() => setView('localSearch')}
+        />
+      )}
+
+      {view === 'localSearch' && (
+        <LocalSearch
+          tokens={safeTokens}
+          pages={safePages}
+          onViewToken={(t) => {
+            setCurrentToken(t)
+            setView('tokenView')
+          }}
+          onViewPage={(p) => {
+            setCurrentPage(p)
+            setView('page')
+          }}
+          onBack={handleBackToSearch}
+        />
+      )}
+
+      {view === 'tokenView' && currentToken && (
+        <TokenView
+          token={currentToken}
+          pages={safePages}
+          onBack={() => setView('localSearch')}
+          onViewPage={(p) => {
+            setCurrentPage(p)
+            setView('page')
+          }}
+          onTokenUpdate={(t) =>
+            setTokens((current) =>
+              (current || []).map((x) => (x.id === t.id ? t : x))
+            )
+          }
+          onExpandToken={(result) => {
+            setCurrentResult(result)
+            setIsExpanding(true)
+            setShowStructureSelection(true)
+          }}
+        />
+      )}
+
+      <StructureSelection
+        open={showStructureSelection}
+        defaultTitle={currentResult?.query}
+        onComplete={handleStructureSelection}
+        onCancel={() => setShowStructureSelection(false)}
+      />
+
+      <FeatureSelection
+        open={showFeatureSelection}
+        structure={selectedStructure || undefined}
+        onComplete={handleFeatureSelection}
+        onCancel={() => setShowFeatureSelection(false)}
+      />
+
+      <SiteConfigDialog
+        open={showSiteConfig}
+        config={siteConfig}
+        onClose={() => setShowSiteConfig(false)}
+        onSave={updateSiteConfig}
+      />
+
+      <QuickStartGuide
+        open={showQuickStart}
+        onClose={() => {
+          setShowQuickStart(false)
+          setHasSeenQuickStart(true)
+        }}
+        onStartDemo={() => {
+          setShowSiteConfig(true)
+        }}
+      />
+    </div>
+  )
 }
 
 export default App
